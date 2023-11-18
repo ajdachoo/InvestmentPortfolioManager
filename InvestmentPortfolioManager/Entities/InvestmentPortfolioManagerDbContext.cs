@@ -19,7 +19,7 @@ namespace InvestmentPortfolioManager.Entities
             modelBuilder.Entity<Asset>(eb =>
             {
                 eb.Property(a => a.Ticker).IsRequired();
-                eb.Property(a => a.Price).IsRequired();
+                eb.Property(a => a.Price).IsRequired().HasPrecision(12, 2);
                 eb.Property(a => a.Currency).IsRequired();
                 eb.Property(a => a.Category).IsRequired();
                 eb.Property(a => a.Name).IsRequired();
@@ -30,7 +30,7 @@ namespace InvestmentPortfolioManager.Entities
             {
                 eb.Property(p => p.Quantity).IsRequired();
                 eb.Property(p => p.Status).IsRequired();
-                eb.Property(p => p.InitialValue).IsRequired();
+                eb.Property(p => p.InitialValue).IsRequired().HasPrecision(12, 2);
                 eb.Property(p => p.CreatedDate).IsRequired();
                 eb.Property(p => p.UpdatedDate).IsRequired();
             });

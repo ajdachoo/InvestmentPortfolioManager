@@ -1,3 +1,6 @@
+using InvestmentPortfolioManager.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace InvestmentPortfolioManager
 {
     public class Program
@@ -9,6 +12,8 @@ namespace InvestmentPortfolioManager
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=InvestmentPortfolioManagerDb;Trusted_Connection=True;"));
 
             var app = builder.Build();
 
