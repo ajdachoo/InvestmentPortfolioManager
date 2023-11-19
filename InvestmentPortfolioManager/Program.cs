@@ -13,7 +13,7 @@ namespace InvestmentPortfolioManager
 
             builder.Services.AddControllers();
 
-            builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=InvestmentPortfolioManagerDb;Trusted_Connection=True;"));
+            builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvestmentPortfolioManagerDbConnection")));
 
             var app = builder.Build();
 
