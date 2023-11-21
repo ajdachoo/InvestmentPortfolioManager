@@ -1,4 +1,5 @@
 using InvestmentPortfolioManager.Entities;
+using InvestmentPortfolioManager.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace InvestmentPortfolioManager
@@ -14,6 +15,8 @@ namespace InvestmentPortfolioManager
             builder.Services.AddControllers();
 
             builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvestmentPortfolioManagerDbConnection")));
+
+            builder.Services.AddScoped<ICryptocurrencyAPIService, CryptocurrencyAPIService>();
 
             var app = builder.Build();
 
