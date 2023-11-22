@@ -17,8 +17,6 @@ namespace InvestmentPortfolioManager.Controllers
         [HttpGet]
         public ActionResult Update()
         {
-            _cryptocurrencyAPIService.UpdateAssets().Wait();
-
             return Ok();
         }
     }

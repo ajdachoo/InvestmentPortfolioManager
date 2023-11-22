@@ -3,12 +3,14 @@ using Flurl.Http;
 using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Models;
 using Newtonsoft.Json;
+using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 
 namespace InvestmentPortfolioManager.Services
 {
     public interface ICryptocurrencyAPIService
     {
-        public Task UpdateAssets();
+        public Task UpdateAssets(CancellationToken cancellationToken);
     }
     public class CryptocurrencyAPIService : ICryptocurrencyAPIService
     {
@@ -19,53 +21,67 @@ namespace InvestmentPortfolioManager.Services
             _dbContext = dbContext;
         }
 
-        public async Task UpdateAssets()
+        public async Task UpdateAssets(CancellationToken cancellationToken)
         {
-            var APIResponse = await "https://api.coingecko.com/api/v3/coins/markets"
-                .WithHeader("user-agent", "something")
-                .SetQueryParams(new
-                {
-                    vs_currency = "usd",
-                    order = "market_cap_desc",
-                    per_page = 200,
-                    page = 1,
-                    sparkline = false,
-                    locale = "pl",
-                    precision = 8
-                })
-                .GetAsync()
-                .ReceiveString();
-
-            var updateDate = DateTime.UtcNow;
-
-            var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CryptocurrencyAssetDto>>(APIResponse);
-
-            var dbAssets = _dbContext.Assets.Where(a => a.Category == "cryptocurrencies").ToList();
-            
-            foreach(var item in cryptocurrencyAssetsDtos)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var dbCryptocurrenciesAsset = dbAssets.FirstOrDefault(a => a.Ticker == item.Symbol.ToUpper());
-
-                if(dbCryptocurrenciesAsset is null)
+                try 
                 {
-                    dbAssets.Add(new Asset
+                    var APIResponse = await "https://api.coingecko.com/api/v3/coins/markets"
+                    .WithHeader("user-agent", "something")
+                    .SetQueryParams(new
                     {
-                        Ticker = item.Symbol.ToUpper(),
-                        UpdatedDate = updateDate,
-                        Price = item.Current_price,
-                        Currency = "USD",
-                        Category = "cryptocurrencies",
-                        Name = item.Name,
-                    });
+                        vs_currency = "usd",
+                        order = "market_cap_desc",
+                        per_page = 200,
+                        page = 1,
+                        sparkline = false,
+                        locale = "pl",
+                        precision = 8
+                    })
+                    .GetAsync(cancellationToken)
+                    .ReceiveString();
+
+                    var updateDate = DateTime.UtcNow;
+
+                    var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CryptocurrencyAssetDto>>(APIResponse);
+
+                    var dbAssets = _dbContext.Assets.Where(a => a.Category == "cryptocurrencies").ToList();
+
+                    foreach (var item in cryptocurrencyAssetsDtos)
+                    {
+                        var dbCryptocurrenciesAsset = dbAssets.FirstOrDefault(a => a.Ticker == item.Symbol.ToUpper());
+
+                        if (dbCryptocurrenciesAsset is null)
+                        {
+                            dbAssets.Add(new Asset
+                            {
+                                Ticker = item.Symbol.ToUpper(),
+                                UpdatedDate = updateDate,
+                                Price = item.Current_price,
+                                Currency = "USD",
+                                Category = "cryptocurrencies",
+                                Name = item.Name,
+                            });
+                        }
+                        else
+                        {
+                            dbCryptocurrenciesAsset.UpdatedDate = updateDate;
+                            dbCryptocurrenciesAsset.Price = item.Current_price;
+                        }
+                    }
+                    _dbContext.UpdateRange(dbAssets);
+                    _dbContext.SaveChanges();
                 }
-                else
+                catch(Exception ex)
                 {
-                    dbCryptocurrenciesAsset.UpdatedDate = updateDate;
-                    dbCryptocurrenciesAsset.Price = item.Current_price;
+                    await Console.Out.WriteLineAsync($"Updated cryptocurrency assets FAILED: {ex.Message}");
+                    await Task.Delay(60000, cancellationToken);
+                    continue;
                 }
+
+                await Task.Delay(60000, cancellationToken);
             }
-            _dbContext.UpdateRange(dbAssets);
-            _dbContext.SaveChanges();
         }
     }
 }
