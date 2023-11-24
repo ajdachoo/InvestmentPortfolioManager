@@ -8,15 +8,15 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace InvestmentPortfolioManager.Services
 {
-    public interface ICryptocurrencyAPIService
+    public interface ICoinGeckoAPIService
     {
         public Task UpdateAssets(CancellationToken cancellationToken);
     }
-    public class CryptocurrencyAPIService : ICryptocurrencyAPIService
+    public class CoinGeckoAPIService : ICoinGeckoAPIService
     {
         private readonly InvestmentPortfolioManagerDbContext _dbContext;
 
-        public CryptocurrencyAPIService(InvestmentPortfolioManagerDbContext dbContext)
+        public CoinGeckoAPIService(InvestmentPortfolioManagerDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -75,7 +75,7 @@ namespace InvestmentPortfolioManager.Services
                 }
                 catch(Exception ex)
                 {
-                    await Console.Out.WriteLineAsync($"Updated cryptocurrency assets FAILED: {ex.Message}");
+                    await Console.Out.WriteLineAsync($"Update cryptocurrency assets error : {ex.Message}");
                     await Task.Delay(60000, cancellationToken);
                     continue;
                 }

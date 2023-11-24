@@ -13,7 +13,7 @@
         {
             using (var scope = _serviceProvider.CreateScope())
             {
-                var cryptocurrencyAPIService = scope.ServiceProvider.GetRequiredService<ICryptocurrencyAPIService>();
+                var cryptocurrencyAPIService = scope.ServiceProvider.GetRequiredService<ICoinGeckoAPIService>();
 
                 await cryptocurrencyAPIService.UpdateAssets(stoppingToken);
             }

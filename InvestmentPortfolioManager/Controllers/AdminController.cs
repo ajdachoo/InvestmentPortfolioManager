@@ -7,9 +7,9 @@ namespace InvestmentPortfolioManager.Controllers
     [Route("api/admin")]
     public class AdminController : ControllerBase
     {
-        private readonly ICryptocurrencyAPIService _cryptocurrencyAPIService;
+        private readonly ICoinGeckoAPIService _cryptocurrencyAPIService;
 
-        public AdminController(ICryptocurrencyAPIService cryptocurrencyAPIService)
+        public AdminController(ICoinGeckoAPIService cryptocurrencyAPIService)
         {
             _cryptocurrencyAPIService = cryptocurrencyAPIService;
         }
