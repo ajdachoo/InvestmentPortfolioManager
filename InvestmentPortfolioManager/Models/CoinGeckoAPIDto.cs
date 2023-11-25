@@ -1,6 +1,6 @@
 ﻿namespace InvestmentPortfolioManager.Models
 {
-    public class CryptocurrencyAssetDto
+    public class CoinGeckoAPIDto
     {
         public string Name { get; set; }
         public decimal Current_price { get; set; }

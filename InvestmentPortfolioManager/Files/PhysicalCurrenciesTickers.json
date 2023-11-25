@@ -1,0 +1,62 @@
+[
+  {
+    "Ticker": "PLN/EUR"
+  },
+  {
+    "Ticker": "PLN/USD"
+  },
+  {
+    "Ticker": "PLN/GBP"
+  },
+  {
+    "Ticker": "PLN/CHF"
+  },
+  {
+    "Ticker": "EUR/PLN"
+  },
+  {
+    "Ticker": "USD/PLN"
+  },
+  {
+    "Ticker": "GBP/PLN"
+  },
+  {
+    "Ticker": "CHF/PLN"
+  },
+  {
+    "Ticker": "EUR/USD"
+  },
+  {
+    "Ticker": "EUR/GBP"
+  },
+  {
+    "Ticker": "EUR/CHF"
+  },
+  {
+    "Ticker": "USD/EUR"
+  },
+  {
+    "Ticker": "GBP/EUR"
+  },
+  {
+    "Ticker": "CHF/EUR"
+  },
+  {
+    "Ticker": "USD/GBP"
+  },
+  {
+    "Ticker": "USD/CHF"
+  },
+  {
+    "Ticker": "GBP/USD"
+  },
+  {
+    "Ticker": "CHF/USD"
+  },
+  {
+    "Ticker": "GBP/CHF"
+  },
+  {
+    "Ticker": "CHF/GBP"
+  }
+]

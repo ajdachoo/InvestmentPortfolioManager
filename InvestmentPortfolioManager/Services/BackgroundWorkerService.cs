@@ -14,8 +14,11 @@
             using (var scope = _serviceProvider.CreateScope())
             {
                 var cryptocurrencyAPIService = scope.ServiceProvider.GetRequiredService<ICoinGeckoAPIService>();
+                var bankierScraperService = scope.ServiceProvider.GetService<IBankierScraperService>();
 
-                await cryptocurrencyAPIService.UpdateAssets(stoppingToken);
+                await Task.WhenAll(
+                    cryptocurrencyAPIService.UpdateAssets(stoppingToken),
+                    bankierScraperService.UpdateAssets(stoppingToken));
             }
         }
     }

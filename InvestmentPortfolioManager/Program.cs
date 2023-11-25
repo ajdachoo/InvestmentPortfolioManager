@@ -18,6 +18,7 @@ namespace InvestmentPortfolioManager
             builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvestmentPortfolioManagerDbConnection")));
 
             builder.Services.AddScoped<ICoinGeckoAPIService, CoinGeckoAPIService>();
+            builder.Services.AddScoped<IBankierScraperService, BankierScraperService>();
             builder.Services.AddHostedService<BackgroundWorkerService>();
 
             var app = builder.Build();

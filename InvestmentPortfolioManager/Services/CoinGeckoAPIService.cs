@@ -44,15 +44,15 @@ namespace InvestmentPortfolioManager.Services
 
                     var updateDate = DateTime.UtcNow;
 
-                    var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CryptocurrencyAssetDto>>(APIResponse);
+                    var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CoinGeckoAPIDto>>(APIResponse);
 
                     var dbAssets = _dbContext.Assets.Where(a => a.Category == "cryptocurrencies").ToList();
 
                     foreach (var item in cryptocurrencyAssetsDtos)
                     {
-                        var dbCryptocurrenciesAsset = dbAssets.FirstOrDefault(a => a.Ticker == item.Symbol.ToUpper());
+                        var dbAsset = dbAssets.FirstOrDefault(a => a.Ticker == item.Symbol.ToUpper());
 
-                        if (dbCryptocurrenciesAsset is null)
+                        if (dbAsset is null)
                         {
                             dbAssets.Add(new Asset
                             {
@@ -66,8 +66,8 @@ namespace InvestmentPortfolioManager.Services
                         }
                         else
                         {
-                            dbCryptocurrenciesAsset.UpdatedDate = updateDate;
-                            dbCryptocurrenciesAsset.Price = item.Current_price;
+                            dbAsset.UpdatedDate = updateDate;
+                            dbAsset.Price = item.Current_price;
                         }
                     }
                     _dbContext.UpdateRange(dbAssets);
