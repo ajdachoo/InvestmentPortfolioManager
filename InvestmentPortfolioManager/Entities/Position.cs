@@ -1,4 +1,6 @@
-﻿namespace InvestmentPortfolioManager.Entities
+﻿using InvestmentPortfolioManager.Enums;
+
+namespace InvestmentPortfolioManager.Entities
 {
     public class Position
     {
@@ -7,7 +9,7 @@
         public virtual Asset Asset { get; set; }
         public int WalletId { get; set; }
         public virtual Wallet Wallet { get; set; }
-        public string Status { get; set; }
+        public PositionStatusEnum Status { get; set; }
         public double Quantity { get; set; }
         public decimal InitialValue { get; set; }
         public DateTime CreatedDate { get; set; }

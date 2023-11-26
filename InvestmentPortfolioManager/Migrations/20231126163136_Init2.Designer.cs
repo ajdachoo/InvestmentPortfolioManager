@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InvestmentPortfolioManager.Migrations
 {
     [DbContext(typeof(InvestmentPortfolioManagerDbContext))]
-    [Migration("20231118224053_Init")]
-    partial class Init
+    [Migration("20231126163136_Init2")]
+    partial class Init2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -45,8 +45,8 @@ namespace InvestmentPortfolioManager.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
+                        .HasPrecision(18, 8)
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<string>("Ticker")
                         .IsRequired()
@@ -75,8 +75,8 @@ namespace InvestmentPortfolioManager.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("InitialValue")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
+                        .HasPrecision(18, 8)
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<double>("Quantity")
                         .HasColumnType("float");

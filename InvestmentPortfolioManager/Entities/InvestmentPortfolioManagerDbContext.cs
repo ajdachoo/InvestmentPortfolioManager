@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InvestmentPortfolioManager.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace InvestmentPortfolioManager.Entities
 {
@@ -20,8 +21,8 @@ namespace InvestmentPortfolioManager.Entities
             {
                 eb.Property(a => a.Ticker).IsRequired();
                 eb.Property(a => a.Price).IsRequired().HasPrecision(18, 8);
-                eb.Property(a => a.Currency).IsRequired();
-                eb.Property(a => a.Category).IsRequired();
+                eb.Property(a => a.Currency).IsRequired().HasConversion<string>();
+                eb.Property(a => a.Category).IsRequired().HasConversion<string>();
                 eb.Property(a => a.Name).IsRequired();
                 eb.Property(a => a.UpdatedDate).IsRequired();
             });
@@ -29,7 +30,7 @@ namespace InvestmentPortfolioManager.Entities
             modelBuilder.Entity<Position>(eb =>
             {
                 eb.Property(p => p.Quantity).IsRequired();
-                eb.Property(p => p.Status).IsRequired();
+                eb.Property(p => p.Status).IsRequired().HasConversion<string>();
                 eb.Property(p => p.InitialValue).IsRequired().HasPrecision(18, 8);
                 eb.Property(p => p.CreatedDate).IsRequired();
                 eb.Property(p => p.UpdatedDate).IsRequired();
@@ -37,8 +38,8 @@ namespace InvestmentPortfolioManager.Entities
 
             modelBuilder.Entity<User>(eb =>
             {
-                eb.Property(u => u.Status).IsRequired();
-                eb.Property(u => u.Currency).IsRequired();
+                eb.Property(u => u.Status).IsRequired().HasConversion<string>();
+                eb.Property(u => u.Currency).IsRequired().HasConversion<string>();
                 eb.Property(u => u.FirstName).IsRequired();
                 eb.Property(u => u.Email).IsRequired();
                 eb.Property(u => u.LastName).IsRequired();

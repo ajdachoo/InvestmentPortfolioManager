@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InvestmentPortfolioManager.Migrations
 {
     [DbContext(typeof(InvestmentPortfolioManagerDbContext))]
-    [Migration("20231119172750_Init2")]
-    partial class Init2
+    [Migration("20231126154519_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

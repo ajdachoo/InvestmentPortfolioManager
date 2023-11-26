@@ -1,6 +1,7 @@
 ﻿using Flurl;
 using Flurl.Http;
 using InvestmentPortfolioManager.Entities;
+using InvestmentPortfolioManager.Enums;
 using InvestmentPortfolioManager.Models;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
@@ -46,7 +47,7 @@ namespace InvestmentPortfolioManager.Services
 
                     var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CoinGeckoAPIDto>>(APIResponse);
 
-                    var dbAssets = _dbContext.Assets.Where(a => a.Category == "cryptocurrencies").ToList();
+                    var dbAssets = _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.Cryptocurrencies).ToList();
 
                     foreach (var item in cryptocurrencyAssetsDtos)
                     {
@@ -59,8 +60,8 @@ namespace InvestmentPortfolioManager.Services
                                 Ticker = item.Symbol.ToUpper(),
                                 UpdatedDate = updateDate,
                                 Price = item.Current_price,
-                                Currency = "USD",
-                                Category = "cryptocurrencies",
+                                Currency = CurrencyEnum.USD,
+                                Category = AssetCategoryEnum.Cryptocurrencies,
                                 Name = item.Name,
                             });
                         }

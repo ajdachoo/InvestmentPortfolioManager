@@ -18,7 +18,8 @@
 
                 await Task.WhenAll(
                     cryptocurrencyAPIService.UpdateAssets(stoppingToken),
-                    bankierScraperService.UpdateAssets(stoppingToken));
+                    bankierScraperService.UpdateStockAssets(stoppingToken),
+                    bankierScraperService.UpdateForexAssets(stoppingToken));
             }
         }
     }
