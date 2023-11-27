@@ -55,7 +55,7 @@ namespace InvestmentPortfolioManager.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets");
+                    b.ToTable("Assets", (string)null);
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Position", b =>
@@ -95,7 +95,7 @@ namespace InvestmentPortfolioManager.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Positions");
+                    b.ToTable("Positions", (string)null);
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.User", b =>
@@ -132,7 +132,7 @@ namespace InvestmentPortfolioManager.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Wallet", b =>
@@ -164,7 +164,7 @@ namespace InvestmentPortfolioManager.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Position", b =>

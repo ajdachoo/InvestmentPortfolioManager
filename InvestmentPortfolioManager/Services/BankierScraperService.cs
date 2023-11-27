@@ -14,13 +14,15 @@ namespace InvestmentPortfolioManager.Services
     }
     public class BankierScraperService : IBankierScraperService
     {
-        private readonly InvestmentPortfolioManagerDbContext _dbContext;
+        private readonly InvestmentPortfolioManagerDbContext _dbContext1;
+        private readonly InvestmentPortfolioManagerDbContext _dbContext2;
         private const string WIGStocksBaseURL = "https://www.bankier.pl/inwestowanie/profile/quote.html?symbol=WIG";
         private const string ForexBaseURL = "https://www.bankier.pl/waluty/kursy-walut/forex";
 
-        public BankierScraperService(InvestmentPortfolioManagerDbContext dbContext)
+        public BankierScraperService(InvestmentPortfolioManagerDbContext dbContext1, InvestmentPortfolioManagerDbContext dbContext2)
         {
-            _dbContext = dbContext;
+            _dbContext1 = dbContext1;
+            _dbContext2 = dbContext2;
         }
 
         public async Task UpdateStockAssets(CancellationToken cancellationToken)
@@ -29,7 +31,7 @@ namespace InvestmentPortfolioManager.Services
             {
                 try
                 {
-                    var dbAssets = _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.PolishStocks).ToList();
+                    var dbAssets = await _dbContext1.Assets.Where(a => a.Category == AssetCategoryEnum.PolishStocks).ToListAsync(cancellationToken);
                     var stocks = GetWIGStocksData();
                     var updateDate = DateTime.UtcNow;
 
@@ -56,8 +58,8 @@ namespace InvestmentPortfolioManager.Services
                         }
                     }
 
-                    _dbContext.UpdateRange(dbAssets);
-                    _dbContext.SaveChanges();
+                    _dbContext1.UpdateRange(dbAssets);
+                    await _dbContext1.SaveChangesAsync(cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -76,7 +78,7 @@ namespace InvestmentPortfolioManager.Services
             {
                 try
                 {
-                    var dbAssets = _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.PhysicalCurrencies).ToList();
+                    var dbAssets = await _dbContext2.Assets.Where(a => a.Category == AssetCategoryEnum.PhysicalCurrencies).ToListAsync(cancellationToken);
                     var forexAssets = GetForexData();
                     var updateDate = DateTime.UtcNow;
 
@@ -100,8 +102,8 @@ namespace InvestmentPortfolioManager.Services
 
                     }
 
-                    _dbContext.UpdateRange(dbAssets);
-                    _dbContext.SaveChanges();
+                    _dbContext2.UpdateRange(dbAssets);
+                    await _dbContext2.SaveChangesAsync(cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -129,6 +131,8 @@ namespace InvestmentPortfolioManager.Services
                 UpdatedDate = updateDate,
             };
 
+            yield return asset1;
+
             var asset2 = new Asset()
             {
                 Name = $"{splitTicker[1]}/{splitTicker[0]}",
@@ -139,10 +143,10 @@ namespace InvestmentPortfolioManager.Services
                 UpdatedDate = updateDate,
             };
 
-            return new List<Asset>() { asset1, asset2 };
+            yield return asset2;
         }
 
-        private static IEnumerable<BankierScraperStockDto> GetWIGStocksData()
+        private IEnumerable<BankierScraperStockDto> GetWIGStocksData()
         {
             var web = new HtmlWeb();
             var document = web.Load(WIGStocksBaseURL);

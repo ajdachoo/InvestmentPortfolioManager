@@ -3,6 +3,7 @@ using Flurl.Http;
 using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Enums;
 using InvestmentPortfolioManager.Models;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
@@ -47,7 +48,7 @@ namespace InvestmentPortfolioManager.Services
 
                     var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CoinGeckoAPIDto>>(APIResponse);
 
-                    var dbAssets = _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.Cryptocurrencies).ToList();
+                    var dbAssets = await _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.Cryptocurrencies).ToListAsync(cancellationToken);
 
                     foreach (var item in cryptocurrencyAssetsDtos)
                     {
@@ -72,7 +73,7 @@ namespace InvestmentPortfolioManager.Services
                         }
                     }
                     _dbContext.UpdateRange(dbAssets);
-                    _dbContext.SaveChanges();
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                 }
                 catch(Exception ex)
                 {

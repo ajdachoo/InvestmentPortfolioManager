@@ -15,11 +15,13 @@
             {
                 var cryptocurrencyAPIService = scope.ServiceProvider.GetRequiredService<ICoinGeckoAPIService>();
                 var bankierScraperService = scope.ServiceProvider.GetService<IBankierScraperService>();
+                var slickchartsScraperService = scope.ServiceProvider.GetService<ISlickchartsScraperService>();
 
                 await Task.WhenAll(
                     cryptocurrencyAPIService.UpdateAssets(stoppingToken),
                     bankierScraperService.UpdateStockAssets(stoppingToken),
-                    bankierScraperService.UpdateForexAssets(stoppingToken));
+                    bankierScraperService.UpdateForexAssets(stoppingToken),
+                    slickchartsScraperService.UpdateAssets(stoppingToken));
             }
         }
     }

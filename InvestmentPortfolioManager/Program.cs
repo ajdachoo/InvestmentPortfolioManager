@@ -15,10 +15,11 @@ namespace InvestmentPortfolioManager
 
             builder.Services.AddControllers();
 
-            builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvestmentPortfolioManagerDbConnection")));
+            builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvestmentPortfolioManagerDbConnection")), ServiceLifetime.Transient);
 
             builder.Services.AddScoped<ICoinGeckoAPIService, CoinGeckoAPIService>();
             builder.Services.AddScoped<IBankierScraperService, BankierScraperService>();
+            builder.Services.AddScoped<ISlickchartsScraperService, SlickchartsScraperService>();
             builder.Services.AddHostedService<BackgroundWorkerService>();
 
             var app = builder.Build();

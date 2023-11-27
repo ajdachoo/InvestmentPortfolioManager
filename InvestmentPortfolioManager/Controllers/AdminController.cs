@@ -10,11 +10,13 @@ namespace InvestmentPortfolioManager.Controllers
     {
         private readonly ICoinGeckoAPIService _cryptocurrencyAPIService;
         private readonly IBankierScraperService _bankierScraperService;
+        private readonly ISlickchartsScraperService _slickchartsScraperService;
 
-        public AdminController(ICoinGeckoAPIService cryptocurrencyAPIService, IBankierScraperService bankierScraperService)
+        public AdminController(ICoinGeckoAPIService cryptocurrencyAPIService, IBankierScraperService bankierScraperService, ISlickchartsScraperService slickchartsScraperService)
         {
             _cryptocurrencyAPIService = cryptocurrencyAPIService;
             _bankierScraperService = bankierScraperService;
+            _slickchartsScraperService = slickchartsScraperService;
         }
 
         [HttpGet]
