@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using InvestmentPortfolioManager.Exceptions;
+using Newtonsoft.Json;
 
 namespace InvestmentPortfolioManager.Middleware
 {
@@ -9,6 +10,16 @@ namespace InvestmentPortfolioManager.Middleware
             try
             {
                 await next.Invoke(context);
+            }
+            catch (NotFoundException notFoundException)
+            {
+                context.Response.StatusCode = 404;
+                await HandleExceptionAsync(context, notFoundException);
+            }
+            catch (BadRequestException badRequestException)
+            {
+                context.Response.StatusCode = 400;
+                await HandleExceptionAsync(context, badRequestException);
             }
             catch (Exception ex)
             {
