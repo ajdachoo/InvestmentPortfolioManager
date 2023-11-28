@@ -1,4 +1,5 @@
 using InvestmentPortfolioManager.Entities;
+using InvestmentPortfolioManager.Middleware;
 using InvestmentPortfolioManager.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,8 @@ namespace InvestmentPortfolioManager
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseHttpsRedirection();
 
