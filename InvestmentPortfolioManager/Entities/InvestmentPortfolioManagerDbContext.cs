@@ -6,7 +6,7 @@ namespace InvestmentPortfolioManager.Entities
     public class InvestmentPortfolioManagerDbContext : DbContext
     {
         public DbSet<Asset> Assets { get; set; }
-        public DbSet<Position> Positions { get; set; }
+        public DbSet<Transaction> Positions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
 
@@ -27,13 +27,12 @@ namespace InvestmentPortfolioManager.Entities
                 eb.Property(a => a.UpdatedDate).IsRequired();
             });
 
-            modelBuilder.Entity<Position>(eb =>
+            modelBuilder.Entity<Transaction>(eb =>
             {
                 eb.Property(p => p.Quantity).IsRequired();
-                eb.Property(p => p.Status).IsRequired().HasConversion<string>();
+                eb.Property(p => p.Type).IsRequired().HasConversion<string>();
                 eb.Property(p => p.InitialValue).IsRequired().HasPrecision(18, 8);
-                eb.Property(p => p.CreatedDate).IsRequired();
-                eb.Property(p => p.UpdatedDate).IsRequired();
+                eb.Property(p => p.TransactionDate).IsRequired();
             });
 
             modelBuilder.Entity<User>(eb =>

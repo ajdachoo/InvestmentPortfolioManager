@@ -4,6 +4,7 @@ using InvestmentPortfolioManager.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InvestmentPortfolioManager.Migrations
 {
     [DbContext(typeof(InvestmentPortfolioManagerDbContext))]
-    partial class InvestmentPortfolioManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231129144742_Init3")]
+    partial class Init3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,7 +60,7 @@ namespace InvestmentPortfolioManager.Migrations
                     b.ToTable("Assets");
                 });
 
-            modelBuilder.Entity("InvestmentPortfolioManager.Entities.Transaction", b =>
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.Position", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -69,6 +71,16 @@ namespace InvestmentPortfolioManager.Migrations
                     b.Property<int>("AssetId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("ClosedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("ClosedValue")
+                        .HasPrecision(18, 8)
+                        .HasColumnType("decimal(18,8)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("InitialValue")
                         .HasPrecision(18, 8)
                         .HasColumnType("decimal(18,8)");
@@ -76,10 +88,7 @@ namespace InvestmentPortfolioManager.Migrations
                     b.Property<double>("Quantity")
                         .HasColumnType("float");
 
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Type")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -164,7 +173,7 @@ namespace InvestmentPortfolioManager.Migrations
                     b.ToTable("Wallets");
                 });
 
-            modelBuilder.Entity("InvestmentPortfolioManager.Entities.Transaction", b =>
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.Position", b =>
                 {
                     b.HasOne("InvestmentPortfolioManager.Entities.Asset", "Asset")
                         .WithMany()
@@ -173,7 +182,7 @@ namespace InvestmentPortfolioManager.Migrations
                         .IsRequired();
 
                     b.HasOne("InvestmentPortfolioManager.Entities.Wallet", "Wallet")
-                        .WithMany("Transactions")
+                        .WithMany("Positions")
                         .HasForeignKey("WalletId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -196,7 +205,7 @@ namespace InvestmentPortfolioManager.Migrations
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Wallet", b =>
                 {
-                    b.Navigation("Transactions");
+                    b.Navigation("Positions");
                 });
 #pragma warning restore 612, 618
         }

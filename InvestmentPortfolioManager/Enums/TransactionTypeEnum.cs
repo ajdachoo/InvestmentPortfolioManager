@@ -1,6 +1,8 @@
 ﻿namespace InvestmentPortfolioManager.Enums
 {
-    public enum PositionStatusEnum
+    public enum TransactionTypeEnum
     {
+        Buy,
+        Sell
     }
 }
