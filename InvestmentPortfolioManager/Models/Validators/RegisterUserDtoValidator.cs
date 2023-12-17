@@ -10,9 +10,9 @@ namespace InvestmentPortfolioManager.Models.Validators
         {
             RuleFor(x => x.Email).NotEmpty().EmailAddress().Custom((value, context) =>
             {
-                var isEmailExist = dbContext.Users.Any(u => u.Email.Equals(value, StringComparison.OrdinalIgnoreCase));
+                var isEmailExist = dbContext.Users.Any(u => u.Email == value.ToLower());
                 
-                if (!isEmailExist)
+                if (isEmailExist)
                 {
                     context.AddFailure("Email", "That email is taken.");
                 }
