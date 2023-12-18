@@ -28,6 +28,9 @@ namespace InvestmentPortfolioManager
 
             builder.Services.AddDbContext<InvestmentPortfolioManagerDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("InvestmentPortfolioManagerDbConnection")), ServiceLifetime.Transient);
 
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
+
             builder.Services.AddScoped<IValidator<CreateWalletDto>, CreateWalletDtoValidator>();
             builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
 
@@ -48,6 +51,12 @@ namespace InvestmentPortfolioManager
             app.UseMiddleware<ErrorHandlingMiddleware>();
 
             app.UseHttpsRedirection();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Investment Portfolio Manager API");
+            });
 
             app.UseAuthorization();
 

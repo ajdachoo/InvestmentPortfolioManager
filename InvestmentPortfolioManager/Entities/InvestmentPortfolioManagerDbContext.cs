@@ -6,7 +6,7 @@ namespace InvestmentPortfolioManager.Entities
     public class InvestmentPortfolioManagerDbContext : DbContext
     {
         public DbSet<Asset> Assets { get; set; }
-        public DbSet<Transaction> Positions { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
 
