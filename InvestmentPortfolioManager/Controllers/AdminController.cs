@@ -19,10 +19,10 @@ namespace InvestmentPortfolioManager.Controllers
             _slickchartsScraperService = slickchartsScraperService;
         }
 
-        [HttpGet]
-        public ActionResult Update()
-        {
-            return Ok();
-        }
+        //[HttpGet]
+        //public ActionResult Update()
+        //{
+        //    return Ok();
+        //}
     }
 }

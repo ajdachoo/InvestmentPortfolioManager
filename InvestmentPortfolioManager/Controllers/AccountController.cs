@@ -22,5 +22,29 @@ namespace InvestmentPortfolioManager.Controllers
 
             return Ok();
         }
+
+        [HttpPost("login")]
+        public ActionResult Login([FromBody] LoginDto loginDto)
+        {
+            return Ok();
+        }
+
+        [HttpDelete("{userId}")]
+        public ActionResult DeleteUser()
+        {
+            return Ok();
+        }
+
+        [HttpGet("{userId}")]
+        public ActionResult GetUser()
+        {
+            return Ok();
+        }
+
+        [HttpPut("{userId}")]
+        public ActionResult UpdateUser()
+        {
+            return Ok();
+        }
     }
 }
