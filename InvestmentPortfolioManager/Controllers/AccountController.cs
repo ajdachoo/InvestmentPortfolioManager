@@ -26,6 +26,8 @@ namespace InvestmentPortfolioManager.Controllers
         [HttpPost("login")]
         public ActionResult Login([FromBody] LoginDto loginDto)
         {
+            _accountService.Login(loginDto);
+            
             return Ok();
         }
 

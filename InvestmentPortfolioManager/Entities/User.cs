@@ -11,5 +11,6 @@ namespace InvestmentPortfolioManager.Entities
         public string Email { get; set; }
         public UserStatusEnum Status { get; set; }
         public CurrencyEnum Currency { get; set; }
+        public virtual List<Wallet> Wallets { get; set; }
     }
 }
