@@ -2,6 +2,7 @@
 using HtmlAgilityPack.CssSelectors.NetCore;
 using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Enums;
+using InvestmentPortfolioManager.Exceptions;
 using InvestmentPortfolioManager.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,8 +16,8 @@ namespace InvestmentPortfolioManager.Services
     public class BankierScraperService : IBankierScraperService
     {
         private readonly InvestmentPortfolioManagerDbContext _dbContext1;
-        private readonly InvestmentPortfolioManagerDbContext _dbContext2;
         private const string WIGStocksBaseURL = "https://www.bankier.pl/inwestowanie/profile/quote.html?symbol=WIG";
+        private readonly InvestmentPortfolioManagerDbContext _dbContext2;
         private const string ForexBaseURL = "https://www.bankier.pl/waluty/kursy-walut/forex";
 
         public BankierScraperService(InvestmentPortfolioManagerDbContext dbContext1, InvestmentPortfolioManagerDbContext dbContext2)
@@ -31,7 +32,14 @@ namespace InvestmentPortfolioManager.Services
             {
                 try
                 {
-                    var dbAssets = await _dbContext1.Assets.Where(a => a.Category == AssetCategoryEnum.PolishStocks).ToListAsync(cancellationToken);
+                    var assetCategory = await _dbContext1.AssetCategories.FirstOrDefaultAsync(a => a.Name == AssetCategoryEnum.PolishStocks.ToString(), cancellationToken);
+
+                    if(assetCategory is null)
+                    {
+                        throw new NotFoundException($"Category \"{AssetCategoryEnum.PolishStocks}\" does not exist");
+                    }
+
+                    var dbAssets = await _dbContext1.Assets.Where(a => a.CategoryId == assetCategory.Id).ToListAsync(cancellationToken);
                     var stocks = GetWIGStocksData();
                     var updateDate = DateTime.UtcNow;
 
@@ -43,7 +51,7 @@ namespace InvestmentPortfolioManager.Services
                         {
                             dbAssets.Add(new Asset
                             {
-                                Category = AssetCategoryEnum.PolishStocks,
+                                CategoryId = assetCategory.Id,
                                 Currency = CurrencyEnum.PLN,
                                 Name = stock.Name,
                                 Ticker = stock.Ticker,
@@ -63,7 +71,7 @@ namespace InvestmentPortfolioManager.Services
                 }
                 catch (Exception ex)
                 {
-                    await Console.Out.WriteLineAsync($"Update stocks(POLAND) assets error : {ex.Message}");
+                    await Console.Out.WriteLineAsync($"Update {AssetCategoryEnum.PolishStocks} assets error : {ex.Message}");
                     await Task.Delay(60000, cancellationToken);
                     continue;
                 }
@@ -78,13 +86,20 @@ namespace InvestmentPortfolioManager.Services
             {
                 try
                 {
-                    var dbAssets = await _dbContext2.Assets.Where(a => a.Category == AssetCategoryEnum.PhysicalCurrencies).ToListAsync(cancellationToken);
+                    var assetCategory = await _dbContext2.AssetCategories.FirstOrDefaultAsync(a => a.Name == AssetCategoryEnum.PhysicalCurrencies.ToString(), cancellationToken);
+
+                    if (assetCategory is null)
+                    {
+                        throw new NotFoundException($"Category \"{AssetCategoryEnum.PhysicalCurrencies}\" does not exist");
+                    }
+
+                    var dbAssets = await _dbContext2.Assets.Where(a => a.CategoryId == assetCategory.Id).ToListAsync(cancellationToken);
                     var forexAssets = GetForexData();
                     var updateDate = DateTime.UtcNow;
 
                     foreach (var forexAsset in forexAssets)
                     {
-                        var assets = GetTwoForexPairs(forexAsset, updateDate);
+                        var assets = GetTwoForexPairs(forexAsset, updateDate, assetCategory.Id);
 
                         foreach (var asset in assets)
                         {
@@ -107,7 +122,7 @@ namespace InvestmentPortfolioManager.Services
                 }
                 catch (Exception ex)
                 {
-                    await Console.Out.WriteLineAsync($"Update physical currency assets error : {ex.Message}");
+                    await Console.Out.WriteLineAsync($"Update {AssetCategoryEnum.PhysicalCurrencies} assets error : {ex.Message}");
                     await Task.Delay(60000, cancellationToken);
                     continue;
                 }
@@ -116,7 +131,7 @@ namespace InvestmentPortfolioManager.Services
             }
         }
 
-        private IEnumerable<Asset> GetTwoForexPairs(BankierScraperForexDto asset, DateTime updateDate)
+        private IEnumerable<Asset> GetTwoForexPairs(BankierScraperForexDto asset, DateTime updateDate, int assetCategoryId)
         {
             var splitTicker = asset.Ticker.Split("/");
             var price = decimal.Parse(asset.Price);
@@ -124,7 +139,7 @@ namespace InvestmentPortfolioManager.Services
             var asset1 = new Asset()
             {
                 Name = asset.Ticker,
-                Category = AssetCategoryEnum.PhysicalCurrencies,
+                CategoryId = assetCategoryId,
                 Currency = Enum.Parse<CurrencyEnum>(splitTicker[1]),
                 Price = price,
                 Ticker = asset.Ticker,
@@ -136,7 +151,7 @@ namespace InvestmentPortfolioManager.Services
             var asset2 = new Asset()
             {
                 Name = $"{splitTicker[1]}/{splitTicker[0]}",
-                Category = AssetCategoryEnum.PhysicalCurrencies,
+                CategoryId = assetCategoryId,
                 Currency = Enum.Parse<CurrencyEnum>(splitTicker[0]),
                 Price = Math.Round(1 / price, 4),
                 Ticker = $"{splitTicker[1]}/{splitTicker[0]}",

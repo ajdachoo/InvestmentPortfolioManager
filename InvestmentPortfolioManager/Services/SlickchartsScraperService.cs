@@ -2,6 +2,7 @@
 using HtmlAgilityPack.CssSelectors.NetCore;
 using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Enums;
+using InvestmentPortfolioManager.Exceptions;
 using InvestmentPortfolioManager.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -29,7 +30,14 @@ namespace InvestmentPortfolioManager.Services
             {
                 try
                 {
-                    var dbAssets = await _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.USStocks).ToListAsync(cancellationToken);
+                    var assetCategory = await _dbContext.AssetCategories.FirstOrDefaultAsync(a => a.Name == AssetCategoryEnum.USStocks.ToString(), cancellationToken);
+
+                    if (assetCategory is null)
+                    {
+                        throw new NotFoundException($"Category \"{AssetCategoryEnum.USStocks}\" does not exist");
+                    }
+
+                    var dbAssets = await _dbContext.Assets.Where(a => a.CategoryId == assetCategory.Id).ToListAsync(cancellationToken);
                     var stocks = GetSP500StocksData();
                     var updateDate = DateTime.UtcNow;
                     var cultureInfo = new CultureInfo("en-US");
@@ -42,7 +50,7 @@ namespace InvestmentPortfolioManager.Services
                         {
                             dbAssets.Add(new Asset
                             {
-                                Category = AssetCategoryEnum.USStocks,
+                                CategoryId = assetCategory.Id,
                                 Currency = CurrencyEnum.USD,
                                 Name = stock.Name,
                                 Ticker = stock.Ticker,
@@ -62,7 +70,7 @@ namespace InvestmentPortfolioManager.Services
                 }
                 catch (Exception ex)
                 {
-                    await Console.Out.WriteLineAsync($"Update stocks(USA) assets error : {ex.Message}");
+                    await Console.Out.WriteLineAsync($"Update {AssetCategoryEnum.USStocks} assets error : {ex.Message}");
                     await Task.Delay(60000, cancellationToken);
                     continue;
                 }

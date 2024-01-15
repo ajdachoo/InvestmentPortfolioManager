@@ -6,6 +6,5 @@
         PhysicalCurrencies,
         PolishStocks,
         USStocks
-
     }
 }

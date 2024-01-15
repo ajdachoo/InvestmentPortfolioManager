@@ -6,8 +6,10 @@ namespace InvestmentPortfolioManager.Entities
     public class InvestmentPortfolioManagerDbContext : DbContext
     {
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<AssetCategory> AssetCategories { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
 
         public InvestmentPortfolioManagerDbContext(DbContextOptions<InvestmentPortfolioManagerDbContext> options) : base(options)
@@ -22,9 +24,14 @@ namespace InvestmentPortfolioManager.Entities
                 eb.Property(a => a.Ticker).IsRequired();
                 eb.Property(a => a.Price).IsRequired().HasPrecision(18, 8);
                 eb.Property(a => a.Currency).IsRequired().HasConversion<string>();
-                eb.Property(a => a.Category).IsRequired().HasConversion<string>();
+                eb.Property(a => a.Category).IsRequired();
                 eb.Property(a => a.Name).IsRequired();
                 eb.Property(a => a.UpdatedDate).IsRequired();
+            });
+
+            modelBuilder.Entity<AssetCategory>(eb =>
+            {
+                eb.Property(a => a.Name).IsRequired();
             });
 
             modelBuilder.Entity<Transaction>(eb =>
@@ -38,11 +45,17 @@ namespace InvestmentPortfolioManager.Entities
             modelBuilder.Entity<User>(eb =>
             {
                 eb.Property(u => u.Status).IsRequired().HasConversion<string>();
+                eb.Property(u => u.Role).IsRequired();
                 eb.Property(u => u.Currency).IsRequired().HasConversion<string>();
                 eb.Property(u => u.FirstName).IsRequired();
                 eb.Property(u => u.Email).IsRequired();
                 eb.Property(u => u.LastName).IsRequired();
                 eb.Property(u => u.PasswordHash).IsRequired();
+            });
+
+            modelBuilder.Entity<UserRole>(eb =>
+            {
+                eb.Property(u => u.Name).IsRequired();
             });
 
             modelBuilder.Entity<Wallet>(eb =>

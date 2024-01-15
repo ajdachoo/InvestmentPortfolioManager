@@ -2,6 +2,7 @@
 using Flurl.Http;
 using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Enums;
+using InvestmentPortfolioManager.Exceptions;
 using InvestmentPortfolioManager.Models;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -48,7 +49,14 @@ namespace InvestmentPortfolioManager.Services
 
                     var cryptocurrencyAssetsDtos = JsonConvert.DeserializeObject<List<CoinGeckoAPIDto>>(APIResponse);
 
-                    var dbAssets = await _dbContext.Assets.Where(a => a.Category == AssetCategoryEnum.Cryptocurrencies).ToListAsync(cancellationToken);
+                    var assetCategory = await _dbContext.AssetCategories.FirstOrDefaultAsync(a => a.Name == AssetCategoryEnum.Cryptocurrencies.ToString(), cancellationToken);
+
+                    if (assetCategory is null)
+                    {
+                        throw new NotFoundException($"Category \"{AssetCategoryEnum.Cryptocurrencies}\" does not exist");
+                    }
+
+                    var dbAssets = await _dbContext.Assets.Where(a => a.CategoryId == assetCategory.Id).ToListAsync(cancellationToken);
 
                     foreach (var item in cryptocurrencyAssetsDtos)
                     {
@@ -62,7 +70,7 @@ namespace InvestmentPortfolioManager.Services
                                 UpdatedDate = updateDate,
                                 Price = item.Current_price,
                                 Currency = CurrencyEnum.USD,
-                                Category = AssetCategoryEnum.Cryptocurrencies,
+                                CategoryId = assetCategory.Id,
                                 Name = item.Name,
                             });
                         }
@@ -77,7 +85,7 @@ namespace InvestmentPortfolioManager.Services
                 }
                 catch(Exception ex)
                 {
-                    await Console.Out.WriteLineAsync($"Update cryptocurrency assets error : {ex.Message}");
+                    await Console.Out.WriteLineAsync($"Update {AssetCategoryEnum.Cryptocurrencies} assets error : {ex.Message}");
                     await Task.Delay(60000, cancellationToken);
                     continue;
                 }
