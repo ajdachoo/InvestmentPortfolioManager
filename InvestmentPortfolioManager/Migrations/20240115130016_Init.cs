@@ -10,6 +10,32 @@ namespace InvestmentPortfolioManager.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "AssetCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AssetCategories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserRoles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Assets",
                 columns: table => new
                 {
@@ -17,7 +43,7 @@ namespace InvestmentPortfolioManager.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Ticker = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false)
@@ -25,6 +51,12 @@ namespace InvestmentPortfolioManager.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Assets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Assets_AssetCategories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "AssetCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -37,12 +69,19 @@ namespace InvestmentPortfolioManager.Migrations
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_UserRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "UserRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -55,44 +94,43 @@ namespace InvestmentPortfolioManager.Migrations
                     Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OwnerId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Wallets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Wallets_Users_OwnerId",
-                        column: x => x.OwnerId,
+                        name: "FK_Wallets_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Positions",
+                name: "Transactions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AssetId = table.Column<int>(type: "int", nullable: false),
                     WalletId = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quantity = table.Column<double>(type: "float", nullable: false),
                     InitialValue = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Positions", x => x.Id);
+                    table.PrimaryKey("PK_Transactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Positions_Assets_AssetId",
+                        name: "FK_Transactions_Assets_AssetId",
                         column: x => x.AssetId,
                         principalTable: "Assets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Positions_Wallets_WalletId",
+                        name: "FK_Transactions_Wallets_WalletId",
                         column: x => x.WalletId,
                         principalTable: "Wallets",
                         principalColumn: "Id",
@@ -100,25 +138,35 @@ namespace InvestmentPortfolioManager.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Positions_AssetId",
-                table: "Positions",
+                name: "IX_Assets_CategoryId",
+                table: "Assets",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_AssetId",
+                table: "Transactions",
                 column: "AssetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Positions_WalletId",
-                table: "Positions",
+                name: "IX_Transactions_WalletId",
+                table: "Transactions",
                 column: "WalletId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Wallets_OwnerId",
+                name: "IX_Users_RoleId",
+                table: "Users",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wallets_UserId",
                 table: "Wallets",
-                column: "OwnerId");
+                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Positions");
+                name: "Transactions");
 
             migrationBuilder.DropTable(
                 name: "Assets");
@@ -127,7 +175,13 @@ namespace InvestmentPortfolioManager.Migrations
                 name: "Wallets");
 
             migrationBuilder.DropTable(
+                name: "AssetCategories");
+
+            migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "UserRoles");
         }
     }
 }

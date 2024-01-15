@@ -34,6 +34,8 @@ namespace InvestmentPortfolioManager
             builder.Services.AddScoped<IValidator<CreateWalletDto>, CreateWalletDtoValidator>();
             builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
 
+            builder.Services.AddScoped<InvestmentPortfolioManagerSeeder>();
+
             builder.Services.AddScoped<ICoinGeckoAPIService, CoinGeckoAPIService>();
             builder.Services.AddScoped<IBankierScraperService, BankierScraperService>();
             builder.Services.AddScoped<ISlickchartsScraperService, SlickchartsScraperService>();
@@ -47,6 +49,15 @@ namespace InvestmentPortfolioManager
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            var scope = app.Services.CreateScope();
+            var seeder = scope.ServiceProvider.GetRequiredService<InvestmentPortfolioManagerSeeder>();
+            seeder.Seed();
+
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
 
             app.UseMiddleware<ErrorHandlingMiddleware>();
 

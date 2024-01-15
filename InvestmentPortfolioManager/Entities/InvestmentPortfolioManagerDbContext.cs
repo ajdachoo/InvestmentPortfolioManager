@@ -24,7 +24,7 @@ namespace InvestmentPortfolioManager.Entities
                 eb.Property(a => a.Ticker).IsRequired();
                 eb.Property(a => a.Price).IsRequired().HasPrecision(18, 8);
                 eb.Property(a => a.Currency).IsRequired().HasConversion<string>();
-                eb.Property(a => a.Category).IsRequired();
+                eb.Property(a => a.CategoryId).IsRequired();
                 eb.Property(a => a.Name).IsRequired();
                 eb.Property(a => a.UpdatedDate).IsRequired();
             });
@@ -40,12 +40,14 @@ namespace InvestmentPortfolioManager.Entities
                 eb.Property(p => p.Type).IsRequired().HasConversion<string>();
                 eb.Property(p => p.InitialValue).IsRequired().HasPrecision(18, 8);
                 eb.Property(p => p.TransactionDate).IsRequired();
+                eb.Property(p => p.WalletId).IsRequired();
+                eb.Property(p => p.AssetId).IsRequired();
             });
 
             modelBuilder.Entity<User>(eb =>
             {
                 eb.Property(u => u.Status).IsRequired().HasConversion<string>();
-                eb.Property(u => u.Role).IsRequired();
+                eb.Property(u => u.RoleId).IsRequired();
                 eb.Property(u => u.Currency).IsRequired().HasConversion<string>();
                 eb.Property(u => u.FirstName).IsRequired();
                 eb.Property(u => u.Email).IsRequired();
@@ -64,6 +66,7 @@ namespace InvestmentPortfolioManager.Entities
                 eb.Property(w => w.Details).IsRequired();
                 eb.Property(w => w.UpdatedDate).IsRequired();
                 eb.Property(w => w.Name).IsRequired();
+                eb.Property(w => w.UserId).IsRequired();
             });
         }
     }

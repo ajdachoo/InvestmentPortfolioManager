@@ -30,9 +30,8 @@ namespace InvestmentPortfolioManager.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -55,7 +54,26 @@ namespace InvestmentPortfolioManager.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("Assets");
+                });
+
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.AssetCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AssetCategories");
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Transaction", b =>
@@ -123,13 +141,35 @@ namespace InvestmentPortfolioManager.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RoleId");
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.UserRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Wallet", b =>
@@ -164,6 +204,17 @@ namespace InvestmentPortfolioManager.Migrations
                     b.ToTable("Wallets");
                 });
 
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.Asset", b =>
+                {
+                    b.HasOne("InvestmentPortfolioManager.Entities.AssetCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Transaction", b =>
                 {
                     b.HasOne("InvestmentPortfolioManager.Entities.Asset", "Asset")
@@ -183,15 +234,31 @@ namespace InvestmentPortfolioManager.Migrations
                     b.Navigation("Wallet");
                 });
 
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.User", b =>
+                {
+                    b.HasOne("InvestmentPortfolioManager.Entities.UserRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Wallet", b =>
                 {
                     b.HasOne("InvestmentPortfolioManager.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("Wallets")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("InvestmentPortfolioManager.Entities.User", b =>
+                {
+                    b.Navigation("Wallets");
                 });
 
             modelBuilder.Entity("InvestmentPortfolioManager.Entities.Wallet", b =>
