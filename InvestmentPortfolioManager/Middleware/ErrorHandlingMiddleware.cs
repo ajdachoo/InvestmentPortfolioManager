@@ -21,6 +21,11 @@ namespace InvestmentPortfolioManager.Middleware
                 context.Response.StatusCode = 400;
                 await HandleExceptionAsync(context, badRequestException);
             }
+            catch (ForbiddenException forbiddenException)
+            {
+                context.Response.StatusCode = 403;
+                await HandleExceptionAsync(context, forbiddenException);
+            }
             catch (Exception ex)
             {
                 context.Response.StatusCode = 500;

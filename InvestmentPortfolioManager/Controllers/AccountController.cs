@@ -26,9 +26,9 @@ namespace InvestmentPortfolioManager.Controllers
         [HttpPost("login")]
         public ActionResult Login([FromBody] LoginDto loginDto)
         {
-            _accountService.Login(loginDto);
+            string token = _accountService.GenerateJwt(loginDto);
             
-            return Ok();
+            return Ok(token);
         }
 
         [HttpDelete("{userId}")]

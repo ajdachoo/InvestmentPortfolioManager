@@ -1,8 +1,8 @@
 ﻿namespace InvestmentPortfolioManager.Enums
 {
-    public enum UserStatusEnum
+    public enum UserRoleEnum
     {
-        Ok,
-        Blocked,
+        User,
+        Admin,
     }
 }
