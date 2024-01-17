@@ -21,6 +21,21 @@ namespace InvestmentPortfolioManager
             CreateMap<CreateWalletDto, Wallet>()
                 .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.Parse(src.CreatedDate)))
                 .ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => DateTime.Parse(src.CreatedDate)));
+
+            CreateMap<AssetCategory, AssetCategoryDto>();
+
+            CreateMap<Asset, AssetDto>()
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
+
+            CreateMap<Transaction, TransactionDto>()
+                .ForMember(dest => dest.AssetName, opt => opt.MapFrom(src => src.Asset.Name))
+                .ForMember(dest => dest.AssetTicker, opt => opt.MapFrom(src => src.Asset.Ticker));
+
+            CreateMap<UserRole, UserRoleDto>();
+
+            CreateMap<Wallet, WalletDto>();
+
+            CreateMap<User, UserDto>();
         }
 
         private string ToUpperFirst(string s)

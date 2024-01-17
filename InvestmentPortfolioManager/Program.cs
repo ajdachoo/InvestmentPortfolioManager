@@ -26,6 +26,7 @@ namespace InvestmentPortfolioManager
             var authenticationSettings = new AuthenticationSettings();
             builder.Configuration.GetSection("Authentication").Bind(authenticationSettings);
 
+            builder.Services.AddSingleton(authenticationSettings);
             builder.Services.AddAuthentication(option =>
             {
                 option.DefaultAuthenticateScheme = "Bearer";
@@ -67,6 +68,7 @@ namespace InvestmentPortfolioManager
             builder.Services.AddScoped<ISlickchartsScraperService, SlickchartsScraperService>();
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<IUserContextService, UserContextService>();
 
             builder.Services.AddScoped<ErrorHandlingMiddleware>();
 

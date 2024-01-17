@@ -1,5 +1,6 @@
 ﻿using InvestmentPortfolioManager.Models;
 using InvestmentPortfolioManager.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvestmentPortfolioManager.Controllers
@@ -31,16 +32,22 @@ namespace InvestmentPortfolioManager.Controllers
             return Ok(token);
         }
 
-        [HttpDelete("{userId}")]
-        public ActionResult DeleteUser()
+        [HttpDelete("{userId?}")]
+        [Authorize]
+        public ActionResult DeleteUser([FromRoute] int? userId)
         {
-            return Ok();
+            _accountService.DeleteUser(userId);
+
+            return NoContent();
         }
 
-        [HttpGet("{userId}")]
-        public ActionResult GetUser()
+        [HttpGet("{userId?}")]
+        [Authorize]
+        public ActionResult GetUser([FromRoute] int? userId)
         {
-            return Ok();
+            var user = _accountService.GetUserById(userId);
+            
+            return Ok(user);
         }
 
         [HttpPut("{userId}")]

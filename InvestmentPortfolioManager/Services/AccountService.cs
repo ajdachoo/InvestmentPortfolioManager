@@ -16,8 +16,8 @@ namespace InvestmentPortfolioManager.Services
     {
         public void RegisterUser(RegisterUserDto registerUserDto);
         public string GenerateJwt(LoginDto loginDto);
-        public void DeleteUser(int userId);
-        public void GetUserById(int userId);
+        public void DeleteUser(int? userId);
+        public UserDto GetUserById(int? userId);
     }
 
     public class AccountService : IAccountService
@@ -26,13 +26,15 @@ namespace InvestmentPortfolioManager.Services
         private readonly IMapper _mapper;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly AuthenticationSettings _authenticationSettings;
+        private readonly IUserContextService _userContextService;
 
-        public AccountService(InvestmentPortfolioManagerDbContext dbContext, IMapper mapper, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings)
+        public AccountService(InvestmentPortfolioManagerDbContext dbContext, IMapper mapper, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings, IUserContextService userContextService)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _passwordHasher = passwordHasher;
             _authenticationSettings = authenticationSettings;
+            _userContextService = userContextService;
         }
 
         public void RegisterUser(RegisterUserDto registerUserDto)
@@ -100,21 +102,52 @@ namespace InvestmentPortfolioManager.Services
 
         }
 
-        public void GetUserById(int userId)
+        public UserDto GetUserById(int? userId)
         {
+            if (userId is null)
+            {
+                userId = _userContextService.GetUserId;
+            }
+            else if (_userContextService.GetUserRoleName == UserRoleEnum.User.ToString() && _userContextService.GetUserId != userId)
+            {
+                throw new ForbiddenException("You don't have permission to acces.");
+            }
+
             var user = _dbContext.Users
                 .Include(u=>u.Wallets)
+                .Include(u=>u.Role)
                 .FirstOrDefault(u => u.Id == userId);
 
-            if(user is null)
+            if (user is null)
             {
-                throw new NotFoundException("User not found");
+                throw new NotFoundException("User not found.");
             }
+
+            var userDto = _mapper.Map<UserDto>(user);
+
+            return userDto;
         }
 
-        public void DeleteUser(int userId)
+        public void DeleteUser(int? userId)
         {
+            if(userId is null)
+            {
+                userId = _userContextService.GetUserId;
+            }
+            else if(_userContextService.GetUserRoleName == UserRoleEnum.User.ToString() && _userContextService.GetUserId != userId)
+            {
+                throw new ForbiddenException("You don't have permission to acces.");
+            }
 
+            var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+
+            if (user is null)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
+            _dbContext.Users.Remove(user);
+            _dbContext.SaveChanges();
         }
     }
 }

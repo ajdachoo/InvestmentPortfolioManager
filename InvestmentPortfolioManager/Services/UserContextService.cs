@@ -7,6 +7,7 @@ namespace InvestmentPortfolioManager.Services
         ClaimsPrincipal User { get; }
         int? GetUserId { get; }
         int? GetUserRoleId { get; }
+        string GetUserRoleName { get; }
     }
     public class UserContextService : IUserContextService
     {
@@ -24,5 +25,8 @@ namespace InvestmentPortfolioManager.Services
 
         public int? GetUserRoleId => 
             User is null ? null : (int?)int.Parse(User.FindFirst(c => c.Type == "RoleId").Value);
+
+        public string GetUserRoleName =>
+            User.FindFirst(c => c.Type == ClaimTypes.Role).Value;
     }
 }
