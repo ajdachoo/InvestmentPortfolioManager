@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using InvestmentPortfolioManager.Authorization;
 using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Enums;
 using InvestmentPortfolioManager.Exceptions;
 using InvestmentPortfolioManager.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +20,7 @@ namespace InvestmentPortfolioManager.Services
         public string GenerateJwt(LoginDto loginDto);
         public void DeleteUser(int? userId);
         public UserDto GetUserById(int? userId);
+        public void UpdateUser(int? userId);
     }
 
     public class AccountService : IAccountService
@@ -27,14 +30,16 @@ namespace InvestmentPortfolioManager.Services
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly AuthenticationSettings _authenticationSettings;
         private readonly IUserContextService _userContextService;
+        private readonly IAuthorizationService _authorizationService;
 
-        public AccountService(InvestmentPortfolioManagerDbContext dbContext, IMapper mapper, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings, IUserContextService userContextService)
+        public AccountService(InvestmentPortfolioManagerDbContext dbContext, IMapper mapper, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings, IUserContextService userContextService, IAuthorizationService authorizationService)
         {
             _dbContext = dbContext;
             _mapper = mapper;
             _passwordHasher = passwordHasher;
             _authenticationSettings = authenticationSettings;
             _userContextService = userContextService;
+            _authorizationService = authorizationService;
         }
 
         public void RegisterUser(RegisterUserDto registerUserDto)
@@ -108,10 +113,6 @@ namespace InvestmentPortfolioManager.Services
             {
                 userId = _userContextService.GetUserId;
             }
-            else if (_userContextService.GetUserRoleName == UserRoleEnum.User.ToString() && _userContextService.GetUserId != userId)
-            {
-                throw new ForbiddenException("You don't have permission to acces.");
-            }
 
             var user = _dbContext.Users
                 .Include(u=>u.Wallets)
@@ -121,6 +122,13 @@ namespace InvestmentPortfolioManager.Services
             if (user is null)
             {
                 throw new NotFoundException("User not found.");
+            }
+
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, user, new UserResourceRequirement(ResourceOperation.Read)).Result;
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new ForbiddenException();
             }
 
             var userDto = _mapper.Map<UserDto>(user);
@@ -134,11 +142,7 @@ namespace InvestmentPortfolioManager.Services
             {
                 userId = _userContextService.GetUserId;
             }
-            else if(_userContextService.GetUserRoleName == UserRoleEnum.User.ToString() && _userContextService.GetUserId != userId)
-            {
-                throw new ForbiddenException("You don't have permission to acces.");
-            }
-
+            
             var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
 
             if (user is null)
@@ -146,8 +150,20 @@ namespace InvestmentPortfolioManager.Services
                 throw new NotFoundException("User not found.");
             }
 
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, user, new UserResourceRequirement(ResourceOperation.Delete)).Result;
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new ForbiddenException();
+            }
+
             _dbContext.Users.Remove(user);
             _dbContext.SaveChanges();
+        }
+
+        public void UpdateUser(int? userId)
+        {
+
         }
     }
 }

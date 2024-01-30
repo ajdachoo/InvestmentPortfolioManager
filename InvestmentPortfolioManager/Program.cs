@@ -10,6 +10,8 @@ using InvestmentPortfolioManager.Models;
 using InvestmentPortfolioManager.Models.Validators;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using InvestmentPortfolioManager.Authorization;
 
 namespace InvestmentPortfolioManager
 {
@@ -47,6 +49,8 @@ namespace InvestmentPortfolioManager
             {
                 options.AddPolicy("UserStatus", builder => builder.RequireClaim("UserStatus", "Ok"));
             });
+
+            builder.Services.AddScoped<IAuthorizationHandler, UserResourceRequirementHandler>();
 
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddFluentValidationClientsideAdapters();
