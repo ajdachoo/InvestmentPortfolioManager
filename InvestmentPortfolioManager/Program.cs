@@ -73,6 +73,7 @@ namespace InvestmentPortfolioManager
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IUserContextService, UserContextService>();
+            builder.Services.AddScoped<IWalletService, WalletService>();
 
             builder.Services.AddScoped<ErrorHandlingMiddleware>();
 

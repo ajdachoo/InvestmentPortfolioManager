@@ -10,27 +10,17 @@ namespace InvestmentPortfolioManager.Models.Validators
         {
             RuleFor(x => x.Name).NotEmpty();
 
-            RuleFor(x => x.CreatedDate).NotEmpty().Custom((value, context) =>
-            {
-                var isValidDateFormat = DateTime.TryParseExact(value, "yyyy-MM-ddTHH:mm:ss.fffZ", null, DateTimeStyles.AdjustToUniversal, out _);
+            RuleFor(x => x.Details).MaximumLength(100);
 
-                if (!isValidDateFormat)
-                {
-                    context.AddFailure("CreatedDate", "Invalid date format, required date format is ISO8601.");
-                }
-            });
+            //RuleFor(x => x.CreatedDate).NotEmpty().Custom((value, context) =>
+            //{
+            //    var isValidDateFormat = DateTime.TryParseExact(value, "yyyy-MM-ddTHH:mm:ss.fffZ", null, DateTimeStyles.AdjustToUniversal, out _);
 
-            RuleFor(x => x.UserId).NotEmpty().Custom((value, context) =>
-            {
-                var isUserExist = dbContext.Users.Any(u => u.Id == value);
-
-                if (!isUserExist)
-                {
-                    context.AddFailure("UserId", $"User with id: {value} not found.");
-                }
-            });
-
-            RuleFor(x => x.Name).NotEmpty();
+            //    if (!isValidDateFormat)
+            //    {
+            //        context.AddFailure("CreatedDate", "Invalid date format, required date format is ISO8601.");
+            //    }
+            //});
         }
     }
 }

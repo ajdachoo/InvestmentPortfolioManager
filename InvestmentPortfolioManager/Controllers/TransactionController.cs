@@ -3,7 +3,7 @@
 namespace InvestmentPortfolioManager.Controllers
 {
     [ApiController]
-    [Route("api/transaction")]
+    [Route("api/wallet/{walletId}/transaction")]
     public class TransactionController : ControllerBase
     {
         public TransactionController()

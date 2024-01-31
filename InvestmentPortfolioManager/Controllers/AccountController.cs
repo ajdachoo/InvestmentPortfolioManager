@@ -51,6 +51,7 @@ namespace InvestmentPortfolioManager.Controllers
         }
 
         [HttpPut("{userId}")]
+        [Authorize]
         public ActionResult UpdateUser()
         {
             return Ok();

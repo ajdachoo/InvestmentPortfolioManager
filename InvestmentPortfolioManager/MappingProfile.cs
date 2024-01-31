@@ -18,9 +18,9 @@ namespace InvestmentPortfolioManager
                 .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => ToUpperFirst(src.FirstName)))
                 .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => ToUpperFirst(src.LastName)));
 
-            CreateMap<CreateWalletDto, Wallet>()
-                .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.Parse(src.CreatedDate)))
-                .ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => DateTime.Parse(src.CreatedDate)));
+            CreateMap<CreateWalletDto, Wallet>();
+                //.ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.Parse(src.CreatedDate)))
+                //.ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => DateTime.Parse(src.CreatedDate)));
 
             CreateMap<AssetCategory, AssetCategoryDto>();
 

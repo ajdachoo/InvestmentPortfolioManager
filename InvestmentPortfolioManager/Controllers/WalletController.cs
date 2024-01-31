@@ -1,21 +1,29 @@
 ﻿using InvestmentPortfolioManager.Models;
+using InvestmentPortfolioManager.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvestmentPortfolioManager.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/wallet")]
+    [Route("api/{userId?}/wallet")]
     public class WalletController : ControllerBase
     {
-        public WalletController()
+        private readonly IWalletService _walletService;
+
+        public WalletController(IWalletService walletService)
         {
-            
+            _walletService = walletService;
         }
 
         [HttpPost]
-        public ActionResult CreateWallet()
+        public ActionResult CreateWallet([FromBody] CreateWalletDto createWalletDto, [FromRoute] int? userId)
         {
-            return Ok();
+            var walletId = _walletService.Create(createWalletDto, userId);
+
+            return Created($"api/wallet/{walletId}", null);
         }
 
         [HttpDelete("{walletId}")]
