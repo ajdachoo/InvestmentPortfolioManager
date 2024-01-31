@@ -12,8 +12,8 @@ namespace InvestmentPortfolioManager.Services
     public interface IWalletService
     {
         public int Create(CreateWalletDto createWalletDto, int? userId);
+        public void Delete(int walletId);
     }
-
 
     public class WalletService : IWalletService
     {
@@ -70,6 +70,28 @@ namespace InvestmentPortfolioManager.Services
             _dbContext.SaveChanges();
 
             return wallet.Id;
+        }
+
+        public void Delete(int walletId)
+        {
+            var wallet = _dbContext.Wallets
+                .Include(w=>w.User)
+                .FirstOrDefault(w => w.Id == walletId);
+
+            if(wallet is null)
+            {
+                throw new NotFoundException("Wallet not found.");
+            }
+
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, wallet.User, new UserResourceRequirement(ResourceOperation.Delete)).Result;
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new ForbiddenException();
+            }
+
+            _dbContext.Wallets.Remove(wallet);
+            _dbContext.SaveChanges();
         }
     }
 }

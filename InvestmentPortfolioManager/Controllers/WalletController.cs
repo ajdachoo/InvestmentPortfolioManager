@@ -29,7 +29,9 @@ namespace InvestmentPortfolioManager.Controllers
         [HttpDelete("{walletId}")]
         public ActionResult DeleteWallet([FromRoute] int walletId)
         {
-            return Ok();
+            _walletService.Delete(walletId);
+            
+            return NoContent();
         }
 
         [HttpPost("{walletId}")]
