@@ -64,6 +64,7 @@ namespace InvestmentPortfolioManager
 
             builder.Services.AddScoped<IValidator<CreateWalletDto>, CreateWalletDtoValidator>();
             builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
+            builder.Services.AddScoped<IValidator<CreateTransactionDto>, CreateTransactionDtoValidator>();
 
             builder.Services.AddScoped<InvestmentPortfolioManagerSeeder>();
 
@@ -74,6 +75,7 @@ namespace InvestmentPortfolioManager
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<IUserContextService, UserContextService>();
             builder.Services.AddScoped<IWalletService, WalletService>();
+            builder.Services.AddScoped<ITransactionService, TransactionService>();
 
             builder.Services.AddScoped<ErrorHandlingMiddleware>();
 

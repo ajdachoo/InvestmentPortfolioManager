@@ -31,6 +31,10 @@ namespace InvestmentPortfolioManager
                 .ForMember(dest => dest.AssetName, opt => opt.MapFrom(src => src.Asset.Name))
                 .ForMember(dest => dest.AssetTicker, opt => opt.MapFrom(src => src.Asset.Ticker));
 
+            CreateMap<CreateTransactionDto, Transaction>()
+                .ForMember(dest => dest.TransactionDate, opt => opt.MapFrom(src => String.IsNullOrEmpty(src.TransactionDate) ? DateTime.UtcNow : DateTime.Parse(src.TransactionDate)))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => Enum.Parse<TransactionTypeEnum>(src.Type, true)));
+
             CreateMap<UserRole, UserRoleDto>();
 
             CreateMap<Wallet, WalletDto>();

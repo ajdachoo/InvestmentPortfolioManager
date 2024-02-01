@@ -1,25 +1,59 @@
-﻿using InvestmentPortfolioManager.Entities;
+﻿using AutoMapper;
+using InvestmentPortfolioManager.Authorization;
+using InvestmentPortfolioManager.Entities;
+using InvestmentPortfolioManager.Exceptions;
 using InvestmentPortfolioManager.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace InvestmentPortfolioManager.Services
 {
     public interface ITransactionService
     {
-        public int Create(CreateTransactionDto dto);
+        public int Create(CreateTransactionDto dto, int walletId);
     }
 
     public class TransactionService : ITransactionService
     {
         private readonly InvestmentPortfolioManagerDbContext _dbContext;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IUserContextService _userContextService;
+        private readonly IMapper _mapper;
 
-        public TransactionService(InvestmentPortfolioManagerDbContext dbContext)
+        public TransactionService(InvestmentPortfolioManagerDbContext dbContext, IAuthorizationService authorizationService, IUserContextService userContextService, IMapper mapper)
         {
             _dbContext = dbContext;
+            _authorizationService = authorizationService;
+            _userContextService = userContextService;
+            _mapper = mapper;
         }
 
-        public int Create(CreateTransactionDto dto)
+        public int Create(CreateTransactionDto createTransactionDto, int walletId)
         {
-            return 0;
+            var wallet = _dbContext.Wallets
+                .Include(w=>w.User)
+                .FirstOrDefault(w => w.Id == walletId);
+
+            if(wallet is null)
+            {
+                throw new NotFoundException("Wallet not found.");
+            }
+
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, wallet.User, new UserResourceRequirement(ResourceOperation.Create)).Result;
+
+            if (!authorizationResult.Succeeded)
+            {
+                throw new ForbiddenException();
+            }
+
+            var transaction = _mapper.Map<Transaction>(createTransactionDto);
+
+            transaction.WalletId = walletId;
+
+            _dbContext.Transactions.Add(transaction);
+            _dbContext.SaveChanges();
+
+            return transaction.Id;
         }
     }
 }
