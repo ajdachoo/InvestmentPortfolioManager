@@ -46,7 +46,7 @@ namespace InvestmentPortfolioManager.Services
                 throw new NotFoundException("User not found.");
             }
 
-            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, user, new UserResourceRequirement(ResourceOperation.Create)).Result;
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, user, new UserResourceRequirement()).Result;
 
             if (!authorizationResult.Succeeded)
             {
@@ -83,7 +83,7 @@ namespace InvestmentPortfolioManager.Services
                 throw new NotFoundException("Wallet not found.");
             }
 
-            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, wallet.User, new UserResourceRequirement(ResourceOperation.Delete)).Result;
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, wallet.User, new UserResourceRequirement()).Result;
 
             if (!authorizationResult.Succeeded)
             {

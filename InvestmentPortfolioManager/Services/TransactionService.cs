@@ -30,8 +30,38 @@ namespace InvestmentPortfolioManager.Services
 
         public int Create(CreateTransactionDto createTransactionDto, int walletId)
         {
+            var wallet = GetWalletById(walletId);
+            
+            var transaction = _mapper.Map<Transaction>(createTransactionDto);
+
+            transaction.WalletId = wallet.Id;
+
+            _dbContext.Transactions.Add(transaction);
+            _dbContext.SaveChanges();
+
+            return transaction.Id;
+        }
+
+        public void Delete(int walletId, int transactionId)
+        {
+            var wallet = GetWalletById(walletId);
+
+            var transaction = wallet.Transactions.FirstOrDefault(t => t.Id == transactionId);
+
+            if (transaction is null)
+            {
+                throw new NotFoundException("Transaction not found.");
+            }
+
+            _dbContext.Transactions.Remove(transaction);
+            _dbContext.SaveChanges();
+        }
+
+        private Wallet GetWalletById(int walletId)
+        {
             var wallet = _dbContext.Wallets
-                .Include(w=>w.User)
+                .Include(w => w.User)
+                .Include(w=>w.Transactions)
                 .FirstOrDefault(w => w.Id == walletId);
 
             if(wallet is null)
@@ -39,21 +69,14 @@ namespace InvestmentPortfolioManager.Services
                 throw new NotFoundException("Wallet not found.");
             }
 
-            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, wallet.User, new UserResourceRequirement(ResourceOperation.Create)).Result;
+            var authorizationResult = _authorizationService.AuthorizeAsync(_userContextService.User, wallet.User, new UserResourceRequirement()).Result;
 
             if (!authorizationResult.Succeeded)
             {
                 throw new ForbiddenException();
             }
 
-            var transaction = _mapper.Map<Transaction>(createTransactionDto);
-
-            transaction.WalletId = walletId;
-
-            _dbContext.Transactions.Add(transaction);
-            _dbContext.SaveChanges();
-
-            return transaction.Id;
+            return wallet;
         }
     }
 }

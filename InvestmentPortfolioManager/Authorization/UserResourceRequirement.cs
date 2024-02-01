@@ -2,21 +2,11 @@
 
 namespace InvestmentPortfolioManager.Authorization
 {
-    public enum ResourceOperation
-    {
-        Create,
-        Read,
-        Update,
-        Delete
-    }
-
     public class UserResourceRequirement : IAuthorizationRequirement
     {
-        public ResourceOperation ResourceOperation { get; }
-
-        public UserResourceRequirement(ResourceOperation resourceOperation)
+        public UserResourceRequirement()
         {
-            ResourceOperation = resourceOperation;
+
         }
     }
 }
