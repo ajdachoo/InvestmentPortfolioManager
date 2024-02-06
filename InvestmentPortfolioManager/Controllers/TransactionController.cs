@@ -26,9 +26,19 @@ namespace InvestmentPortfolioManager.Controllers
         }
 
         [HttpDelete("{transactionId}")]
-        public ActionResult DeleteTransaction([FromRoute] int transactionId)
+        public ActionResult DeleteTransaction([FromRoute] int walletId, [FromRoute] int transactionId)
         {
-            return Ok();
+            _transactionService.Delete(walletId, transactionId);
+            
+            return NoContent();
+        }
+
+        [HttpGet]
+        public ActionResult<List<TransactionDto>> GetAllTransactions([FromRoute] int walletId)
+        {
+            var transactions = _transactionService.GetAllTransactions(walletId).ToList();
+
+            return transactions;
         }
     }
 }

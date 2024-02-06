@@ -33,11 +33,5 @@ namespace InvestmentPortfolioManager.Controllers
             
             return NoContent();
         }
-
-        [HttpPost("{walletId}")]
-        public ActionResult AddTransaction()
-        {
-            return Ok();
-        }
     }
 }
