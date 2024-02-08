@@ -8,6 +8,7 @@ namespace InvestmentPortfolioManager.Controllers
     [ApiController]
     [Authorize]
     [Route("api/wallet/{walletId}/transaction")]
+    [Route("api/{userId?}/wallet/{walletId}/transaction")]
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _transactionService;

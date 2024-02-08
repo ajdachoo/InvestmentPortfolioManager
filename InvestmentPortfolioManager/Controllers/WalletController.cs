@@ -33,5 +33,21 @@ namespace InvestmentPortfolioManager.Controllers
             
             return NoContent();
         }
+
+        [HttpGet("{walletId}")]
+        public ActionResult<WalletDto> GetWalletById([FromRoute] int walletId)
+        {
+            var wallet = _walletService.Get(walletId);
+
+            return wallet;
+        }
+
+        [HttpGet]
+        public ActionResult<List<WalletDto>> GetAllWallets([FromRoute] int? userId)
+        {
+            var walletDtos = _walletService.GetAll(userId).ToList();
+
+            return walletDtos;
+        }
     }
 }

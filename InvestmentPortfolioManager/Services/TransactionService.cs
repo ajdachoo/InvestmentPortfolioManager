@@ -56,8 +56,10 @@ namespace InvestmentPortfolioManager.Services
             }
 
             transaction.WalletId = wallet.Id;
+            wallet.UpdatedDate = DateTime.UtcNow;
 
             _dbContext.Transactions.Add(transaction);
+            _dbContext.Wallets.Update(wallet);
             _dbContext.SaveChanges();
 
             return transaction.Id;
@@ -92,7 +94,7 @@ namespace InvestmentPortfolioManager.Services
             var wallet = _dbContext.Wallets
                 .Include(w => w.User)
                 .Include(w => w.Transactions)
-                .ThenInclude(t=>t.Asset)
+                .ThenInclude(t => t.Asset)
                 .FirstOrDefault(w => w.Id == walletId);
 
             if(wallet is null)

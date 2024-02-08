@@ -10,6 +10,6 @@ namespace InvestmentPortfolioManager.Models
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
         public int UserId { get; set; }
-        public List<TransactionDto> Transactions { get; set; }
+        public List<Position> Positions { get; set; }
     }
 }
