@@ -32,6 +32,13 @@ namespace InvestmentPortfolioManager.Controllers
             return Ok(token);
         }
 
+        [HttpPost("authorize")]
+        [Authorize]
+        public ActionResult Authorize()
+        {
+            return Ok();
+        }
+
         [HttpDelete("{userId?}")]
         [Authorize]
         public ActionResult DeleteUser([FromRoute] int? userId)
