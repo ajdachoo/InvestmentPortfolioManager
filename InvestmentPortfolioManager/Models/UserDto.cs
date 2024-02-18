@@ -10,8 +10,7 @@ namespace InvestmentPortfolioManager.Models
         public string LastName { get; set; }
         public string Email { get; set; }
         public UserRoleDto Role { get; set; }
-        public UserStatusEnum Status { get; set; }
-        public CurrencyEnum Currency { get; set; }
-        public List<WalletDto> Wallets { get; set; }
+        public string Status { get; set; }
+        public string Currency { get; set; }
     }
 }

@@ -40,7 +40,9 @@ namespace InvestmentPortfolioManager
 
             CreateMap<Wallet, WalletDto>();
 
-            CreateMap<User, UserDto>();
+            CreateMap<User, UserDto>()
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency.ToString()))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
         }
 
         private string ToUpperFirst(string s)
