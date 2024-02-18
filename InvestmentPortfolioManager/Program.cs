@@ -61,6 +61,16 @@ namespace InvestmentPortfolioManager
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("FrontEndClient", builder =>
+
+                    builder.AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowAnyOrigin()
+
+                    );
+            });
 
             builder.Services.AddScoped<IValidator<CreateWalletDto>, CreateWalletDtoValidator>();
             builder.Services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
@@ -87,6 +97,9 @@ namespace InvestmentPortfolioManager
 
             var scope = app.Services.CreateScope();
             var seeder = scope.ServiceProvider.GetRequiredService<InvestmentPortfolioManagerSeeder>();
+
+            app.UseCors("FrontEndClient");
+
             seeder.Seed();
 
             if (app.Environment.IsDevelopment())
