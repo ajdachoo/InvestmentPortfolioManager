@@ -25,7 +25,8 @@ namespace InvestmentPortfolioManager
             CreateMap<AssetCategory, AssetCategoryDto>();
 
             CreateMap<Asset, AssetDto>()
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name));
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.Name))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency.ToString()));
 
             CreateMap<Transaction, TransactionDto>()
                 .ForMember(dest => dest.AssetName, opt => opt.MapFrom(src => src.Asset.Name))

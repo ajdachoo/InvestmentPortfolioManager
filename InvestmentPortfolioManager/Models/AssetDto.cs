@@ -11,6 +11,6 @@ namespace InvestmentPortfolioManager.Models
         public string Category { get; set; }
         public decimal Price { get; set; }
         public DateTime UpdatedDate { get; set; }
-        public CurrencyEnum Currency { get; set; }
+        public string Currency { get; set; }
     }
 }

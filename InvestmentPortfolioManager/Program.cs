@@ -86,6 +86,7 @@ namespace InvestmentPortfolioManager
             builder.Services.AddScoped<IUserContextService, UserContextService>();
             builder.Services.AddScoped<IWalletService, WalletService>();
             builder.Services.AddScoped<ITransactionService, TransactionService>();
+            builder.Services.AddScoped<IAssetService, AssetService>();
 
             builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
