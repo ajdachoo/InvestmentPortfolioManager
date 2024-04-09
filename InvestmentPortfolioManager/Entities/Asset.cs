@@ -10,7 +10,7 @@ namespace InvestmentPortfolioManager.Entities
         public string Ticker { get; set; }
         public virtual AssetCategory Category { get; set; }
         public int CategoryId { get; set; }
-        public decimal Price { get; set; }
+        public decimal CurrentPrice { get; set; }
         public DateTime UpdatedDate { get; set; }
         public CurrencyEnum Currency { get; set; }
     }

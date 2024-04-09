@@ -207,10 +207,10 @@ namespace InvestmentPortfolioManager.Services
                         throw new NotFoundException("Currency not found.");
                     }
 
-                    currencyAssetPrice = currencyAsset.Price;
+                    currencyAssetPrice = currencyAsset.CurrentPrice;
                 }
 
-                position.CurrentValue = (decimal)position.Quantity * asset.Price * currencyAssetPrice;
+                position.CurrentValue = (decimal)position.Quantity * asset.CurrentPrice * currencyAssetPrice;
                 position.TotalCost *= currencyAssetPrice;
                 position.AvgCost = position.TotalCost / (decimal)position.Quantity;
                 position.Profit = position.CurrentValue - position.TotalCost;

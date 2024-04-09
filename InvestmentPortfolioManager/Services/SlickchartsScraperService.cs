@@ -54,14 +54,21 @@ namespace InvestmentPortfolioManager.Services
                                 Currency = CurrencyEnum.USD,
                                 Name = stock.Name,
                                 Ticker = stock.Ticker,
-                                Price = decimal.Parse(stock.Price, cultureInfo),
+                                CurrentPrice = decimal.Parse(stock.Price, cultureInfo),
                                 UpdatedDate = updateDate,
                             });
                         }
                         else
                         {
+                            _dbContext.Prices.Add(new Price
+                            {
+                                AssetId = dbAsset.Id,
+                                Date = dbAsset.UpdatedDate,
+                                Value = dbAsset.CurrentPrice
+                            });
+
                             dbAsset.UpdatedDate = updateDate;
-                            dbAsset.Price = decimal.Parse(stock.Price, cultureInfo);
+                            dbAsset.CurrentPrice = decimal.Parse(stock.Price, cultureInfo);
                         }
                     }
 

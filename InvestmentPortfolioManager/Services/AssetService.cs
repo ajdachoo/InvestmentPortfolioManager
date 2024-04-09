@@ -74,7 +74,7 @@ namespace InvestmentPortfolioManager.Services
                 {
                     var newCurrency = currencies.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
 
-                    asset.Price *= newCurrency.Price;
+                    asset.CurrentPrice *= newCurrency.CurrentPrice;
                     asset.Currency = currencyEnum;
                 }
 

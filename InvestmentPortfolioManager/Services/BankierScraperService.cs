@@ -55,14 +55,21 @@ namespace InvestmentPortfolioManager.Services
                                 Currency = CurrencyEnum.PLN,
                                 Name = stock.Name,
                                 Ticker = stock.Ticker,
-                                Price = decimal.Parse(stock.Price),
+                                CurrentPrice = decimal.Parse(stock.Price),
                                 UpdatedDate = updateDate,
                             });
                         }
                         else
                         {
+                            _dbContext1.Prices.Add(new Price
+                            {
+                                AssetId = dbAsset.Id,
+                                Date = dbAsset.UpdatedDate,
+                                Value = dbAsset.CurrentPrice
+                            });
+
                             dbAsset.UpdatedDate = updateDate;
-                            dbAsset.Price = decimal.Parse(stock.Price);
+                            dbAsset.CurrentPrice = decimal.Parse(stock.Price);
                         }
                     }
 
@@ -110,7 +117,14 @@ namespace InvestmentPortfolioManager.Services
                             }
                             else
                             {
-                                dbAsset.Price = asset.Price;
+                                _dbContext2.Prices.Add(new Price
+                                {
+                                    AssetId = dbAsset.Id,
+                                    Date = dbAsset.UpdatedDate,
+                                    Value = dbAsset.CurrentPrice
+                                });
+
+                                dbAsset.CurrentPrice = asset.CurrentPrice;
                                 dbAsset.UpdatedDate = asset.UpdatedDate;
                             }
                         }
@@ -141,7 +155,7 @@ namespace InvestmentPortfolioManager.Services
                 Name = asset.Ticker,
                 CategoryId = assetCategoryId,
                 Currency = Enum.Parse<CurrencyEnum>(splitTicker[1]),
-                Price = price,
+                CurrentPrice = price,
                 Ticker = asset.Ticker,
                 UpdatedDate = updateDate,
             };
@@ -153,7 +167,7 @@ namespace InvestmentPortfolioManager.Services
                 Name = $"{splitTicker[1]}/{splitTicker[0]}",
                 CategoryId = assetCategoryId,
                 Currency = Enum.Parse<CurrencyEnum>(splitTicker[0]),
-                Price = Math.Round(1 / price, 4),
+                CurrentPrice = Math.Round(1 / price, 4),
                 Ticker = $"{splitTicker[1]}/{splitTicker[0]}",
                 UpdatedDate = updateDate,
             };

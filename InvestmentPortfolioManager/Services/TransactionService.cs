@@ -42,7 +42,7 @@ namespace InvestmentPortfolioManager.Services
             {
                 var transactions = wallet.Transactions.Where(t => t.AssetId == transaction.AssetId);
 
-                double sum = 0;
+                decimal sum = 0;
 
                 foreach(var t in transactions)
                 {

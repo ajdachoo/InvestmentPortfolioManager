@@ -5,7 +5,7 @@
         public int AssetId { get; set; }
         public string AssetName { get; set; }
         public string Ticker { get; set; }
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
         public decimal CurrentValue { get; set; }
         public decimal TotalCost { get; set; }
         public decimal AvgCost { get; set; }

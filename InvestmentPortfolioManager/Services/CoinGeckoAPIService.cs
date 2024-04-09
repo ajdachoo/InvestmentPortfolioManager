@@ -68,7 +68,7 @@ namespace InvestmentPortfolioManager.Services
                             {
                                 Ticker = item.Symbol.ToUpper(),
                                 UpdatedDate = updateDate,
-                                Price = item.Current_price,
+                                CurrentPrice = item.Current_price,
                                 Currency = CurrencyEnum.USD,
                                 CategoryId = assetCategory.Id,
                                 Name = item.Name,
@@ -76,8 +76,15 @@ namespace InvestmentPortfolioManager.Services
                         }
                         else
                         {
+                            _dbContext.Prices.Add(new Price
+                            {
+                                AssetId = dbAsset.Id,
+                                Date = dbAsset.UpdatedDate,
+                                Value = dbAsset.CurrentPrice
+                            });
+
                             dbAsset.UpdatedDate = updateDate;
-                            dbAsset.Price = item.Current_price;
+                            dbAsset.CurrentPrice = item.Current_price;
                         }
                     }
                     _dbContext.UpdateRange(dbAssets);

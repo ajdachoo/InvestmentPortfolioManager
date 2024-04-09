@@ -6,6 +6,7 @@ namespace InvestmentPortfolioManager.Entities
     public class InvestmentPortfolioManagerDbContext : DbContext
     {
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<Price> Prices { get; set; }
         public DbSet<AssetCategory> AssetCategories { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> Users { get; set; }
@@ -22,7 +23,7 @@ namespace InvestmentPortfolioManager.Entities
             modelBuilder.Entity<Asset>(eb =>
             {
                 eb.Property(a => a.Ticker).IsRequired();
-                eb.Property(a => a.Price).IsRequired().HasPrecision(18, 8);
+                eb.Property(a => a.CurrentPrice).IsRequired().HasPrecision(18, 8);
                 eb.Property(a => a.Currency).IsRequired().HasConversion<string>();
                 eb.Property(a => a.CategoryId).IsRequired();
                 eb.Property(a => a.Name).IsRequired();
@@ -34,9 +35,16 @@ namespace InvestmentPortfolioManager.Entities
                 eb.Property(a => a.Name).IsRequired();
             });
 
+            modelBuilder.Entity<Price>(eb =>
+            {
+                eb.Property(a => a.AssetId).IsRequired();
+                eb.Property(a => a.Date).IsRequired();
+                eb.Property(a => a.Value).IsRequired().HasPrecision(18, 8);
+            });
+
             modelBuilder.Entity<Transaction>(eb =>
             {
-                eb.Property(p => p.Quantity).IsRequired();
+                eb.Property(p => p.Quantity).IsRequired().HasPrecision(18, 8);
                 eb.Property(p => p.Type).IsRequired().HasConversion<string>();
                 eb.Property(p => p.InitialValue).IsRequired().HasPrecision(18, 8);
                 eb.Property(p => p.TransactionDate).IsRequired();
