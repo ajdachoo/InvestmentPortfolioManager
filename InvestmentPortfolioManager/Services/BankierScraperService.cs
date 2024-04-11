@@ -61,12 +61,15 @@ namespace InvestmentPortfolioManager.Services
                         }
                         else
                         {
-                            _dbContext1.Prices.Add(new Price
+                            if (dbAsset.CurrentPrice != decimal.Parse(stock.Price))
                             {
-                                AssetId = dbAsset.Id,
-                                Date = dbAsset.UpdatedDate,
-                                Value = dbAsset.CurrentPrice
-                            });
+                                _dbContext1.Prices.Add(new Price
+                                {
+                                    AssetId = dbAsset.Id,
+                                    Date = dbAsset.UpdatedDate,
+                                    Value = dbAsset.CurrentPrice
+                                });
+                            }
 
                             dbAsset.UpdatedDate = updateDate;
                             dbAsset.CurrentPrice = decimal.Parse(stock.Price);
@@ -117,13 +120,16 @@ namespace InvestmentPortfolioManager.Services
                             }
                             else
                             {
-                                _dbContext2.Prices.Add(new Price
+                                if(dbAsset.CurrentPrice != asset.CurrentPrice)
                                 {
-                                    AssetId = dbAsset.Id,
-                                    Date = dbAsset.UpdatedDate,
-                                    Value = dbAsset.CurrentPrice
-                                });
-
+                                    _dbContext2.Prices.Add(new Price
+                                    {
+                                        AssetId = dbAsset.Id,
+                                        Date = dbAsset.UpdatedDate,
+                                        Value = dbAsset.CurrentPrice
+                                    });
+                                }
+                               
                                 dbAsset.CurrentPrice = asset.CurrentPrice;
                                 dbAsset.UpdatedDate = asset.UpdatedDate;
                             }

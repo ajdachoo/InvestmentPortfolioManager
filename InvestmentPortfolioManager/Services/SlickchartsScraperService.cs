@@ -60,12 +60,15 @@ namespace InvestmentPortfolioManager.Services
                         }
                         else
                         {
-                            _dbContext.Prices.Add(new Price
+                            if (dbAsset.CurrentPrice != decimal.Parse(stock.Price, cultureInfo))
                             {
-                                AssetId = dbAsset.Id,
-                                Date = dbAsset.UpdatedDate,
-                                Value = dbAsset.CurrentPrice
-                            });
+                                _dbContext.Prices.Add(new Price
+                                {
+                                    AssetId = dbAsset.Id,
+                                    Date = dbAsset.UpdatedDate,
+                                    Value = dbAsset.CurrentPrice
+                                });
+                            }
 
                             dbAsset.UpdatedDate = updateDate;
                             dbAsset.CurrentPrice = decimal.Parse(stock.Price, cultureInfo);
