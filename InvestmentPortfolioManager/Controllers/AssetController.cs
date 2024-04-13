@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace InvestmentPortfolioManager.Controllers
 {
     [ApiController]
-    [Route("api/asset")]
+    [Route("api/asset/{currency}")]
     public class AssetController : ControllerBase
     {
         private readonly IAssetService _assetService;
@@ -16,7 +16,7 @@ namespace InvestmentPortfolioManager.Controllers
             _assetService = assetService;
         }
 
-        [Route("{currency}")]
+        [HttpGet]
         public IActionResult GetAssets([FromRoute] string currency)
         {
             var assets = _assetService.GetAll(currency);
@@ -24,12 +24,12 @@ namespace InvestmentPortfolioManager.Controllers
             return Ok(assets);
         }
 
-        [Route("{currency}/{category}")]
-        public IActionResult GetAssetsByCategory([FromRoute]string currency, [FromRoute]string category)
+        [HttpGet("{id}")]
+        public IActionResult GetAssetById([FromRoute]string currency, [FromRoute]int id)
         {
-            var assets = _assetService.GetAssetsByCategory(category, currency);
+            var asset = _assetService.GetById(id, currency);
 
-            return Ok(assets);
+            return Ok(asset);
         }
     }
 }
