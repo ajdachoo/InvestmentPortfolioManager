@@ -10,6 +10,9 @@ namespace InvestmentPortfolioManager.Models
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
         public int UserId { get; set; }
-        public List<Position> Positions { get; set; }
+        public decimal CurrentValue { get; set; }
+        public string Currency { get; set; }
+        public List<AssetPosition> AssetPositions { get; set; }
+        public List<AssetCategoryPosition> AssetCategoryPositions { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace InvestmentPortfolioManager.Controllers
         [HttpGet]
         public IActionResult GetAssets([FromRoute] string currency)
         {
-            var assets = _assetService.GetAll(currency);
+            var assets = _assetService.GetAll(currency).ToList();
 
             return Ok(assets);
         }

@@ -81,11 +81,15 @@ namespace InvestmentPortfolioManager.Services
         public WalletDto Get(int walletId)
         {
             var wallet = GetWalletById(walletId);
-            var positions = GetPositions(wallet.Transactions, wallet.User.Currency);
+            var assetPositions = GetAssetPositions(wallet.Transactions, wallet.User.Currency);
+            var assetCategoryPositions = GetAssetCategoryPositions(assetPositions);
 
             var walletDto = _mapper.Map<WalletDto>(wallet);
 
-            walletDto.Positions = positions.ToList();
+            walletDto.AssetPositions = assetPositions;
+            walletDto.Currency = wallet.User.Currency.ToString();
+            walletDto.CurrentValue = assetPositions.Sum(p => p.CurrentValue);
+            walletDto.AssetCategoryPositions = assetCategoryPositions;
 
             return walletDto;
         }
@@ -128,6 +132,7 @@ namespace InvestmentPortfolioManager.Services
                 .Include(w => w.User)
                 .Include(w => w.Transactions)
                 .ThenInclude(t => t.Asset)
+                .ThenInclude(a => a.Category)
                 .FirstOrDefault(w => w.Id == walletId);
 
             if (wallet is null)
@@ -162,9 +167,9 @@ namespace InvestmentPortfolioManager.Services
             AuthorizeUser(user);
         }
 
-        private IEnumerable<Position> GetPositions(List<Transaction> transactions, CurrencyEnum currency)
+        private List<AssetPosition> GetAssetPositions(List<Transaction> transactions, CurrencyEnum currency)
         {
-            var positions = new List<Position>();
+            var positions = new List<AssetPosition>();
             decimal walletValue = 0;
 
             foreach (var transaction in transactions)
@@ -173,9 +178,11 @@ namespace InvestmentPortfolioManager.Services
 
                 if(position is null)
                 {
-                    positions.Add(new Position { 
+                    positions.Add(new AssetPosition { 
                         AssetId = transaction.AssetId,
                         AssetName = transaction.Asset.Name,
+                        AssetCategoryName = transaction.Asset.Category.Name,
+                        AssetCategoryId = transaction.Asset.Category.Id,
                         Ticker = transaction.Asset.Ticker,
                         Quantity = transaction.Quantity,
                         TotalCost = transaction.InitialValue,
@@ -228,18 +235,39 @@ namespace InvestmentPortfolioManager.Services
 
             return positions;
         }
-        //public class Position
-        //{
-        //    public int AssetId { get; set; }
-        //    public string AssetName { get; set; }
-        //    public string Ticker { get; set; }
-        //    public double Quantity { get; set; }
-        //    public decimal CurrentValue { get; set; }
-        //    public decimal TotalCost { get; set; }
-        //    public decimal AvgCost { get; set; }
-        //    public decimal Profit { get; set; }
-        //    public double PercentageInWallet { get; set; }
-        //    public DateTime UpdatedDate { get; set; }
-        //}
+
+        private List<AssetCategoryPosition> GetAssetCategoryPositions(List<AssetPosition> positions)
+        {
+            decimal walletValue = 0;
+            var categoryPositions = new List<AssetCategoryPosition>();
+
+            foreach (var position in positions)
+            {
+                walletValue += position.CurrentValue;
+
+                var categoryPosition = categoryPositions.FirstOrDefault(cp => cp.CategoryId == position.AssetCategoryId);
+
+                if(categoryPosition is null)
+                {
+                    categoryPositions.Add(new AssetCategoryPosition
+                    {
+                        CategoryId = position.AssetCategoryId,
+                        CategoryName = position.AssetCategoryName,
+                        TotalValue = position.CurrentValue
+                    });
+                }
+                else
+                {
+                    categoryPosition.TotalValue += position.CurrentValue;
+                }
+            }
+
+            foreach(var categoryPosition in categoryPositions)
+            {
+                categoryPosition.PercentageInWallet = (double)(categoryPosition.TotalValue / walletValue) * 100;
+            }
+
+            return categoryPositions;
+        }
     }
 }

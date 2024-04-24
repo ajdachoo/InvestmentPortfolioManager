@@ -1,9 +1,11 @@
 ﻿namespace InvestmentPortfolioManager.Models
 {
-    public class Position
+    public class AssetPosition
     {
         public int AssetId { get; set; }
         public string AssetName { get; set; }
+        public int AssetCategoryId { get; set; }
+        public string AssetCategoryName { get; set; }
         public string Ticker { get; set; }
         public decimal Quantity { get; set; }
         public decimal CurrentValue { get; set; }
