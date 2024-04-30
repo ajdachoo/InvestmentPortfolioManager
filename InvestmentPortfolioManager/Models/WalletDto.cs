@@ -11,6 +11,8 @@ namespace InvestmentPortfolioManager.Models
         public DateTime UpdatedDate { get; set; }
         public int UserId { get; set; }
         public decimal CurrentValue { get; set; }
+        public decimal TotalProfit { get; set; }
+        public decimal TotalCost { get; set; }
         public string Currency { get; set; }
         public List<AssetPosition> AssetPositions { get; set; }
         public List<AssetCategoryPosition> AssetCategoryPositions { get; set; }

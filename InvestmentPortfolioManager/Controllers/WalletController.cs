@@ -37,7 +37,7 @@ namespace InvestmentPortfolioManager.Controllers
         [HttpGet("{walletId}")]
         public ActionResult<WalletDto> GetWalletById([FromRoute] int walletId)
         {
-            var wallet = _walletService.Get(walletId);
+            var wallet = _walletService.GetWallet(walletId);
 
             return wallet;
         }

@@ -14,7 +14,7 @@ namespace InvestmentPortfolioManager.Services
     {
         public int Create(CreateWalletDto createWalletDto, int? userId);
         public void Delete(int walletId);
-        public WalletDto Get(int walletId);
+        public WalletDto GetWallet(int walletId);
         public IEnumerable<WalletDto> GetAll(int? userId);
     }
 
@@ -78,7 +78,7 @@ namespace InvestmentPortfolioManager.Services
             _dbContext.SaveChanges();
         }
 
-        public WalletDto Get(int walletId)
+        public WalletDto GetWallet(int walletId)
         {
             var wallet = GetWalletById(walletId);
             var assetPositions = GetAssetPositions(wallet.Transactions, wallet.User.Currency);
@@ -89,6 +89,8 @@ namespace InvestmentPortfolioManager.Services
             walletDto.AssetPositions = assetPositions;
             walletDto.Currency = wallet.User.Currency.ToString();
             walletDto.CurrentValue = assetPositions.Sum(p => p.CurrentValue);
+            walletDto.TotalProfit = assetPositions.Sum(p => p.Profit);
+            walletDto.TotalCost = assetPositions.Sum(p => p.TotalCost);
             walletDto.AssetCategoryPositions = assetCategoryPositions;
 
             return walletDto;
@@ -105,7 +107,7 @@ namespace InvestmentPortfolioManager.Services
 
             foreach(var wallet in user.Wallets)
             {
-                var walletDto = Get(wallet.Id);
+                var walletDto = GetWallet(wallet.Id);
                 yield return walletDto;
             }
         } 
@@ -253,12 +255,16 @@ namespace InvestmentPortfolioManager.Services
                     {
                         CategoryId = position.AssetCategoryId,
                         CategoryName = position.AssetCategoryName,
-                        TotalValue = position.CurrentValue
+                        TotalValue = position.CurrentValue,
+                        TotalProfit = position.Profit,
+                        TotalCost = position.TotalCost
                     });
                 }
                 else
                 {
                     categoryPosition.TotalValue += position.CurrentValue;
+                    categoryPosition.TotalProfit += position.Profit;
+                    categoryPosition.TotalCost += position.TotalCost;
                 }
             }
 
@@ -268,6 +274,26 @@ namespace InvestmentPortfolioManager.Services
             }
 
             return categoryPositions;
+        }
+
+        private Price GetPriceByClosestDate(DateTime date, int assetId)
+        {
+            var prices = _dbContext.Prices.Where(p => p.AssetId == assetId).OrderBy(p => p.Date).ToList();
+
+            if (prices.Count == 0)
+            {
+                var currentPrice = _dbContext.Assets.FirstOrDefault(a => a.Id == assetId).CurrentPrice;
+
+                return new Price() { Value = currentPrice };
+            }
+
+            var closestPrice = date >= prices.Last().Date
+                ? prices.Last()
+                : date <= prices.First().Date
+                    ? prices.First()
+                    : prices.First(p => p.Date >= date);
+
+            return closestPrice;
         }
     }
 }
