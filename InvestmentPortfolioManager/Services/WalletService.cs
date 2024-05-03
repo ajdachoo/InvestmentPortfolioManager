@@ -173,6 +173,7 @@ namespace InvestmentPortfolioManager.Services
         {
             var positions = new List<AssetPosition>();
             decimal walletValue = 0;
+            var currentDate = DateTime.UtcNow;
 
             foreach (var transaction in transactions)
             {
@@ -219,20 +220,25 @@ namespace InvestmentPortfolioManager.Services
                     currencyAssetPrice = currencyAsset.CurrentPrice;
                 }
 
-                position.CurrentValue = (decimal)position.Quantity * asset.CurrentPrice * currencyAssetPrice;
+                var assetFinalPrice = asset.CurrentPrice * currencyAssetPrice;
+
+                position.CurrentValue = position.Quantity * assetFinalPrice;
                 position.TotalCost *= currencyAssetPrice;
-                position.AvgCost = position.TotalCost / (decimal)position.Quantity;
+                position.AvgCost = position.TotalCost / position.Quantity;
                 position.Profit = position.CurrentValue - position.TotalCost;
+
+                position.PercentageChange24h = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddHours(-24), asset, currency)) / assetFinalPrice) * 100);
+                position.PercentageChange7d = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddDays(-7), asset, currency)) / assetFinalPrice) * 100);
+                position.PercentageChange1m = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddMonths(-1), asset, currency)) / assetFinalPrice) * 100);
+                position.PercentageChange1y = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddYears(-1), asset, currency)) / assetFinalPrice) * 100);
 
                 walletValue += position.CurrentValue;
             }
 
-            var updateDate = DateTime.UtcNow;
-
             foreach(var position in positions)
             {
                 position.PercentageInWallet = (double)(position.CurrentValue / walletValue) * 100;
-                position.UpdatedDate = updateDate;
+                position.UpdatedDate = currentDate;
             }
 
             return positions;
@@ -276,24 +282,45 @@ namespace InvestmentPortfolioManager.Services
             return categoryPositions;
         }
 
-        private Price GetPriceByClosestDate(DateTime date, int assetId)
+        private decimal GetPriceByClosestDate(DateTime date, Asset asset, CurrencyEnum currency)
         {
-            var prices = _dbContext.Prices.Where(p => p.AssetId == assetId).OrderBy(p => p.Date).ToList();
+            decimal currencyPrice = 1;
 
-            if (prices.Count == 0)
+            var assetPrices = _dbContext.Prices.Where(p => p.AssetId == asset.Id).OrderBy(p => p.Date).ToList();
+
+            if (asset.Currency != currency)
             {
-                var currentPrice = _dbContext.Assets.FirstOrDefault(a => a.Id == assetId).CurrentPrice;
+                var currencyAsset = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
+                var currencyAssetPrices = _dbContext.Prices.Where(p => p.AssetId == currencyAsset.Id).OrderBy(p => p.Date).ToList();
 
-                return new Price() { Value = currentPrice };
+                if (currencyAssetPrices.Count > 0)
+                {
+                    var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
+                        ? currencyAssetPrices.Last()
+                        : date <= currencyAssetPrices.First().Date
+                            ? currencyAssetPrices.First()
+                            : currencyAssetPrices.First(p => p.Date >= date);
+
+                    currencyPrice = closestCurrencyAssetPrice.Value;
+                }
+                else
+                {
+                    currencyPrice = currencyAsset.CurrentPrice;
+                }
             }
 
-            var closestPrice = date >= prices.Last().Date
-                ? prices.Last()
-                : date <= prices.First().Date
-                    ? prices.First()
-                    : prices.First(p => p.Date >= date);
+            if (assetPrices.Count == 0)
+            {
+                return asset.CurrentPrice * currencyPrice;
+            }
 
-            return closestPrice;
+            var closestAssetPrice = date >= assetPrices.Last().Date
+                ? assetPrices.Last()
+                : date <= assetPrices.First().Date
+                    ? assetPrices.First()
+                    : assetPrices.First(p => p.Date >= date);
+
+            return closestAssetPrice.Value * currencyPrice;
         }
     }
 }

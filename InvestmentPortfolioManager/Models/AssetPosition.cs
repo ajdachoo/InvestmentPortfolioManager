@@ -14,5 +14,9 @@
         public decimal Profit { get; set; }
         public double PercentageInWallet { get; set; }
         public DateTime UpdatedDate { get; set; }
+        public double PercentageChange24h { get; set; }
+        public double PercentageChange7d { get; set; }
+        public double PercentageChange1m { get; set; }
+        public double PercentageChange1y { get; set; }
     }
 }

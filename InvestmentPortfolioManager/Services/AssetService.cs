@@ -87,57 +87,67 @@ namespace InvestmentPortfolioManager.Services
                     continue;
                 }
 
-                double percentageChange24h = 0, percentageChange7d = 0, percentageChange1m = 0, percentageChange1y = 0;
+                var assetDto = _mapper.Map<AssetDto>(asset);
+
+                decimal currencyAssetPrice = 1;
 
                 if (asset.Currency != currencyEnum)
                 {
                     var newCurrency = currencies.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
 
-                    asset.CurrentPrice *= newCurrency.CurrentPrice;
-                    asset.Currency = currencyEnum;
-
-                    percentageChange24h = (double)((((GetPriceByClosestDate(currentDate.AddHours(-24), asset.Id).Value * GetPriceByClosestDate(currentDate.AddHours(-24), newCurrency.Id).Value) - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                    percentageChange7d = (double)((((GetPriceByClosestDate(currentDate.AddDays(-7), asset.Id).Value * GetPriceByClosestDate(currentDate.AddDays(-7), newCurrency.Id).Value) - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                    percentageChange1m = (double)((((GetPriceByClosestDate(currentDate.AddMonths(-1), asset.Id).Value * GetPriceByClosestDate(currentDate.AddMonths(-1), newCurrency.Id).Value) - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                    percentageChange1y = (double)((((GetPriceByClosestDate(currentDate.AddYears(-1), asset.Id).Value * GetPriceByClosestDate(currentDate.AddYears(-1), newCurrency.Id).Value) - asset.CurrentPrice) / asset.CurrentPrice) * 100);
+                    currencyAssetPrice = newCurrency.CurrentPrice;
+                    assetDto.Currency = currencyEnum.ToString();
                 }
-                else
-                {
-                    percentageChange24h = (double)(((GetPriceByClosestDate(currentDate.AddHours(-24), asset.Id).Value - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                    percentageChange7d = (double)(((GetPriceByClosestDate(currentDate.AddDays(-7), asset.Id).Value - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                    percentageChange1m = (double)(((GetPriceByClosestDate(currentDate.AddMonths(-1), asset.Id).Value - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                    percentageChange1y = (double)(((GetPriceByClosestDate(currentDate.AddYears(-1), asset.Id).Value - asset.CurrentPrice) / asset.CurrentPrice) * 100);
-                }
-
-                var assetDto = _mapper.Map<AssetDto>(asset);
-
-                assetDto.PercentageChange24h = percentageChange24h;
-                assetDto.PercentageChange7d = percentageChange7d;
-                assetDto.PercentageChange1m = percentageChange1m;
-                assetDto.PercentageChange1y = percentageChange1y;
+                
+                assetDto.CurrentPrice *= currencyAssetPrice;
+                assetDto.PercentageChange24h = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddHours(-24), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
+                assetDto.PercentageChange7d = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddDays(-7), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
+                assetDto.PercentageChange1m = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddMonths(-1), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
+                assetDto.PercentageChange1y = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddYears(-1), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
 
                 yield return assetDto;
             }
         }
 
-        private Price GetPriceByClosestDate(DateTime date, int assetId)
+        private decimal GetPriceByClosestDate(DateTime date, Asset asset, CurrencyEnum currency)
         {
-            var prices = _dbContext.Prices.Where(p => p.AssetId == assetId).OrderBy(p => p.Date).ToList();
+            decimal currencyPrice = 1;
 
-            if(prices.Count == 0)
+            var assetPrices = _dbContext.Prices.Where(p => p.AssetId == asset.Id).OrderBy(p => p.Date).ToList();
+
+            if (asset.Currency != currency)
             {
-                var currentPrice = _dbContext.Assets.FirstOrDefault(a => a.Id == assetId).CurrentPrice;
+                var currencyAsset = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
+                var currencyAssetPrices = _dbContext.Prices.Where(p => p.AssetId == currencyAsset.Id).OrderBy(p => p.Date).ToList();
 
-                return new Price() { Value = currentPrice };
+                if (currencyAssetPrices.Count > 0)
+                {
+                    var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
+                        ? currencyAssetPrices.Last()
+                        : date <= currencyAssetPrices.First().Date
+                            ? currencyAssetPrices.First()
+                            : currencyAssetPrices.First(p => p.Date >= date);
+
+                    currencyPrice = closestCurrencyAssetPrice.Value;
+                }
+                else
+                {
+                    currencyPrice = currencyAsset.CurrentPrice;
+                }
             }
 
-            var closestPrice = date >= prices.Last().Date
-                ? prices.Last()
-                : date <= prices.First().Date
-                    ? prices.First()
-                    : prices.First(p => p.Date >= date);
+            if (assetPrices.Count == 0)
+            {
+                return asset.CurrentPrice * currencyPrice;
+            }
 
-            return closestPrice;
+            var closestAssetPrice = date >= assetPrices.Last().Date
+                ? assetPrices.Last()
+                : date <= assetPrices.First().Date
+                    ? assetPrices.First()
+                    : assetPrices.First(p => p.Date >= date);
+
+            return closestAssetPrice.Value * currencyPrice;
         }
     }
 }
