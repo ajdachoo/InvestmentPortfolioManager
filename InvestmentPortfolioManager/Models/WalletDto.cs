@@ -14,6 +14,10 @@ namespace InvestmentPortfolioManager.Models
         public decimal TotalProfit { get; set; }
         public decimal TotalCost { get; set; }
         public string Currency { get; set; }
+        public double PercentageChange24h { get; set; }
+        public double PercentageChange7d { get; set; }
+        public double PercentageChange1m { get; set; }
+        public double PercentageChange1y { get; set; }
         public List<AssetPosition> AssetPositions { get; set; }
         public List<AssetCategoryPosition> AssetCategoryPositions { get; set; }
     }

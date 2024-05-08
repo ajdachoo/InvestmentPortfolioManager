@@ -8,5 +8,9 @@
         public decimal TotalValue { get; set; }
         public decimal TotalProfit { get; set; }
         public decimal TotalCost { get; set; }
+        public double PercentageChange24h { get; set; }
+        public double PercentageChange7d { get; set; }
+        public double PercentageChange1m { get; set; }
+        public double PercentageChange1y { get; set; }
     }
 }

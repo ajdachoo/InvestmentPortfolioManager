@@ -87,11 +87,27 @@ namespace InvestmentPortfolioManager.Services
             var walletDto = _mapper.Map<WalletDto>(wallet);
 
             walletDto.AssetPositions = assetPositions;
-            walletDto.Currency = wallet.User.Currency.ToString();
-            walletDto.CurrentValue = assetPositions.Sum(p => p.CurrentValue);
-            walletDto.TotalProfit = assetPositions.Sum(p => p.Profit);
-            walletDto.TotalCost = assetPositions.Sum(p => p.TotalCost);
             walletDto.AssetCategoryPositions = assetCategoryPositions;
+            walletDto.Currency = wallet.User.Currency.ToString();
+
+            decimal sumPricesLast24h = 0, sumPricesLast7d = 0, sumPricesLast1m = 0, sumPricesLast1y = 0;
+
+            foreach (var assetPosition in assetPositions)
+            {
+                walletDto.CurrentValue += assetPosition.TotalValue;
+                walletDto.TotalProfit += assetPosition.Profit;
+                walletDto.TotalCost += assetPosition.TotalCost;
+
+                sumPricesLast24h += assetPosition.TotalValue / ((decimal)assetPosition.PercentageChange24h / 100 + 1);
+                sumPricesLast7d += assetPosition.TotalValue / ((decimal)assetPosition.PercentageChange7d / 100 + 1);
+                sumPricesLast1m += assetPosition.TotalValue / ((decimal)assetPosition.PercentageChange1m / 100 + 1);
+                sumPricesLast1y += assetPosition.TotalValue / ((decimal)assetPosition.PercentageChange1y / 100 + 1);
+            }
+
+            walletDto.PercentageChange24h = (double)((walletDto.CurrentValue - sumPricesLast24h) / sumPricesLast24h * 100);
+            walletDto.PercentageChange7d = (double)((walletDto.CurrentValue - sumPricesLast7d) / sumPricesLast7d * 100);
+            walletDto.PercentageChange1m = (double)((walletDto.CurrentValue - sumPricesLast1m) / sumPricesLast1m * 100);
+            walletDto.PercentageChange1y = (double)((walletDto.CurrentValue - sumPricesLast1y) / sumPricesLast1y * 100);
 
             return walletDto;
         }
@@ -220,24 +236,30 @@ namespace InvestmentPortfolioManager.Services
                     currencyAssetPrice = currencyAsset.CurrentPrice;
                 }
 
-                var assetFinalPrice = asset.CurrentPrice * currencyAssetPrice;
-
-                position.CurrentValue = position.Quantity * assetFinalPrice;
+                position.Price = asset.CurrentPrice * currencyAssetPrice;
+                position.TotalValue = position.Quantity * position.Price;
                 position.TotalCost *= currencyAssetPrice;
                 position.AvgCost = position.TotalCost / position.Quantity;
-                position.Profit = position.CurrentValue - position.TotalCost;
+                position.Profit = position.TotalValue - position.TotalCost;
 
-                position.PercentageChange24h = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddHours(-24), asset, currency)) / assetFinalPrice) * 100);
-                position.PercentageChange7d = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddDays(-7), asset, currency)) / assetFinalPrice) * 100);
-                position.PercentageChange1m = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddMonths(-1), asset, currency)) / assetFinalPrice) * 100);
-                position.PercentageChange1y = (double)(((assetFinalPrice - GetPriceByClosestDate(currentDate.AddYears(-1), asset, currency)) / assetFinalPrice) * 100);
+                var priceLast24h = GetPriceByClosestDate(currentDate.AddHours(-24), asset, currency);
+                position.PercentageChange24h = (double)((position.Price - priceLast24h) / priceLast24h * 100);
 
-                walletValue += position.CurrentValue;
+                var priceLast7d = GetPriceByClosestDate(currentDate.AddDays(-7), asset, currency);
+                position.PercentageChange7d = (double)((position.Price - priceLast7d) / priceLast7d * 100);
+
+                var priceLast1m = GetPriceByClosestDate(currentDate.AddMonths(-1), asset, currency);
+                position.PercentageChange1m = (double)((position.Price - priceLast1m) / priceLast1m * 100);
+
+                var priceLast1y = GetPriceByClosestDate(currentDate.AddYears(-1), asset, currency);
+                position.PercentageChange1y = (double)((position.Price - priceLast1y) / priceLast1y * 100);
+
+                walletValue += position.TotalValue;
             }
 
             foreach(var position in positions)
             {
-                position.PercentageInWallet = (double)(position.CurrentValue / walletValue) * 100;
+                position.PercentageInWallet = (double)(position.TotalValue / walletValue) * 100;
                 position.UpdatedDate = currentDate;
             }
 
@@ -251,7 +273,7 @@ namespace InvestmentPortfolioManager.Services
 
             foreach (var position in positions)
             {
-                walletValue += position.CurrentValue;
+                walletValue += position.TotalValue;
 
                 var categoryPosition = categoryPositions.FirstOrDefault(cp => cp.CategoryId == position.AssetCategoryId);
 
@@ -261,14 +283,14 @@ namespace InvestmentPortfolioManager.Services
                     {
                         CategoryId = position.AssetCategoryId,
                         CategoryName = position.AssetCategoryName,
-                        TotalValue = position.CurrentValue,
+                        TotalValue = position.TotalValue,
                         TotalProfit = position.Profit,
                         TotalCost = position.TotalCost
                     });
                 }
                 else
                 {
-                    categoryPosition.TotalValue += position.CurrentValue;
+                    categoryPosition.TotalValue += position.TotalValue;
                     categoryPosition.TotalProfit += position.Profit;
                     categoryPosition.TotalCost += position.TotalCost;
                 }
@@ -277,6 +299,23 @@ namespace InvestmentPortfolioManager.Services
             foreach(var categoryPosition in categoryPositions)
             {
                 categoryPosition.PercentageInWallet = (double)(categoryPosition.TotalValue / walletValue) * 100;
+
+                decimal sumPricesLast24h = 0, sumPricesLast7d = 0, sumPricesLast1m = 0, sumPricesLast1y = 0;
+
+                var p = positions.Where(p => p.AssetCategoryId == categoryPosition.CategoryId);
+                
+                foreach (var position in p)
+                {
+                    sumPricesLast24h += position.TotalValue / ((decimal)position.PercentageChange24h / 100 + 1);
+                    sumPricesLast7d += position.TotalValue / ((decimal)position.PercentageChange7d / 100 + 1);
+                    sumPricesLast1m += position.TotalValue / ((decimal)position.PercentageChange1m / 100 + 1);
+                    sumPricesLast1y += position.TotalValue / ((decimal)position.PercentageChange1y / 100 + 1);
+                }
+
+                categoryPosition.PercentageChange24h = (double)((categoryPosition.TotalValue - sumPricesLast24h) / sumPricesLast24h * 100);
+                categoryPosition.PercentageChange7d = (double)((categoryPosition.TotalValue - sumPricesLast7d) / sumPricesLast7d * 100);
+                categoryPosition.PercentageChange1m = (double)((categoryPosition.TotalValue - sumPricesLast1m) / sumPricesLast1m * 100);
+                categoryPosition.PercentageChange1y = (double)((categoryPosition.TotalValue - sumPricesLast1y) / sumPricesLast1y * 100);
             }
 
             return categoryPositions;

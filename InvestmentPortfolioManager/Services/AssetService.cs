@@ -100,10 +100,18 @@ namespace InvestmentPortfolioManager.Services
                 }
                 
                 assetDto.CurrentPrice *= currencyAssetPrice;
-                assetDto.PercentageChange24h = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddHours(-24), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
-                assetDto.PercentageChange7d = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddDays(-7), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
-                assetDto.PercentageChange1m = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddMonths(-1), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
-                assetDto.PercentageChange1y = (double)(((assetDto.CurrentPrice - GetPriceByClosestDate(currentDate.AddYears(-1), asset, currencyEnum)) / assetDto.CurrentPrice) * 100);
+
+                var priceLast24h = GetPriceByClosestDate(currentDate.AddHours(-24), asset, currencyEnum);
+                assetDto.PercentageChange24h = (double)((assetDto.CurrentPrice - priceLast24h) / priceLast24h * 100);
+
+                var priceLast7d = GetPriceByClosestDate(currentDate.AddDays(-7), asset, currencyEnum);
+                assetDto.PercentageChange7d = (double)((assetDto.CurrentPrice - priceLast7d) / priceLast7d * 100);
+
+                var priceLast1m = GetPriceByClosestDate(currentDate.AddMonths(-1), asset, currencyEnum);
+                assetDto.PercentageChange1m = (double)((assetDto.CurrentPrice - priceLast1m) / priceLast1m * 100);
+
+                var priceLast1y = GetPriceByClosestDate(currentDate.AddYears(-1), asset, currencyEnum);
+                assetDto.PercentageChange1y = (double)((assetDto.CurrentPrice - priceLast1y) / priceLast1y * 100);
 
                 yield return assetDto;
             }

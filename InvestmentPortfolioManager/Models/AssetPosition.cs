@@ -7,8 +7,9 @@
         public int AssetCategoryId { get; set; }
         public string AssetCategoryName { get; set; }
         public string Ticker { get; set; }
+        public decimal Price { get; set; }
         public decimal Quantity { get; set; }
-        public decimal CurrentValue { get; set; }
+        public decimal TotalValue { get; set; }
         public decimal TotalCost { get; set; }
         public decimal AvgCost { get; set; }
         public decimal Profit { get; set; }
