@@ -7,6 +7,7 @@ using InvestmentPortfolioManager.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace InvestmentPortfolioManager.Services
 {
@@ -44,7 +45,7 @@ namespace InvestmentPortfolioManager.Services
 
             if(user.Wallets.Any(w=>w.Name == createWalletDto.Name))
             {
-                throw new BadRequestException("A wallet with this name already exist.");
+                throw new BadRequestException("A wallet with this name already exists.");
             }
 
             var updateDate = DateTime.UtcNow;
@@ -81,14 +82,23 @@ namespace InvestmentPortfolioManager.Services
         public WalletDto GetWallet(int walletId)
         {
             var wallet = GetWalletById(walletId);
+            var walletDto = _mapper.Map<WalletDto>(wallet);
+
+            walletDto.Currency = wallet.User.Currency.ToString();
+
+            if (wallet.Transactions.IsNullOrEmpty())
+            {
+                walletDto.AssetPositions = new List<AssetPosition>();
+                walletDto.AssetCategoryPositions = new List<AssetCategoryPosition>();
+
+                return walletDto;
+            }
+
             var assetPositions = GetAssetPositions(wallet.Transactions, wallet.User.Currency);
             var assetCategoryPositions = GetAssetCategoryPositions(assetPositions);
 
-            var walletDto = _mapper.Map<WalletDto>(wallet);
-
             walletDto.AssetPositions = assetPositions;
             walletDto.AssetCategoryPositions = assetCategoryPositions;
-            walletDto.Currency = wallet.User.Currency.ToString();
 
             decimal sumPricesLast24h = 0, sumPricesLast7d = 0, sumPricesLast1m = 0, sumPricesLast1y = 0;
 
@@ -326,31 +336,21 @@ namespace InvestmentPortfolioManager.Services
             decimal currencyPrice = 1;
 
             var assetPrices = _dbContext.Prices.Where(p => p.AssetId == asset.Id).OrderBy(p => p.Date).ToList();
+            assetPrices.Add(new Price { AssetId = asset.Id, Date = asset.UpdatedDate, Value = asset.CurrentPrice });
 
             if (asset.Currency != currency)
             {
                 var currencyAsset = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
                 var currencyAssetPrices = _dbContext.Prices.Where(p => p.AssetId == currencyAsset.Id).OrderBy(p => p.Date).ToList();
+                currencyAssetPrices.Add(new Price { Date = currencyAsset.UpdatedDate, AssetId = currencyAsset.Id, Value = currencyAsset.CurrentPrice });
 
-                if (currencyAssetPrices.Count > 0)
-                {
-                    var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
+                var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
                         ? currencyAssetPrices.Last()
                         : date <= currencyAssetPrices.First().Date
                             ? currencyAssetPrices.First()
                             : currencyAssetPrices.First(p => p.Date >= date);
 
-                    currencyPrice = closestCurrencyAssetPrice.Value;
-                }
-                else
-                {
-                    currencyPrice = currencyAsset.CurrentPrice;
-                }
-            }
-
-            if (assetPrices.Count == 0)
-            {
-                return asset.CurrentPrice * currencyPrice;
+                currencyPrice = closestCurrencyAssetPrice.Value;
             }
 
             var closestAssetPrice = date >= assetPrices.Last().Date

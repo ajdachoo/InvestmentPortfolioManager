@@ -11,8 +11,10 @@ namespace InvestmentPortfolioManager.Models
         public string AssetTicker { get; set; }
         public int WalletId { get; set; }
         public string Type { get; set; }
-        public double Quantity { get; set; }
+        public decimal Price { get; set; }
+        public decimal Quantity { get; set; }
         public decimal InitialValue { get; set; }
+        public string Currency { get; set; }
         public DateTime TransactionDate { get; set; }
     }
 }

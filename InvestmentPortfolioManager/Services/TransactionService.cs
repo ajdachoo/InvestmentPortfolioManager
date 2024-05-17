@@ -15,6 +15,7 @@ namespace InvestmentPortfolioManager.Services
         public int Create(CreateTransactionDto dto, int walletId);
         public void Delete(int walletId, int transactionId);
         public IEnumerable<TransactionDto> GetAllTransactions(int walletId);
+        public IEnumerable<TransactionDto> GetTransactionsByAsset(int walletId, int assetId);
     }
 
     public class TransactionService : ITransactionService
@@ -56,6 +57,13 @@ namespace InvestmentPortfolioManager.Services
             }
 
             transaction.WalletId = wallet.Id;
+
+            var asset = _dbContext.Assets.FirstOrDefault(a => a.Id == transaction.AssetId);
+            var currency = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{wallet.User.Currency}/{asset.Currency}");
+            var currencyPrice = GetPriceByClosestDate(transaction.TransactionDate, currency, wallet.User.Currency);
+
+            transaction.InitialValue *= currencyPrice;
+
             wallet.UpdatedDate = DateTime.UtcNow;
 
             _dbContext.Transactions.Add(transaction);
@@ -83,10 +91,59 @@ namespace InvestmentPortfolioManager.Services
         public IEnumerable<TransactionDto> GetAllTransactions(int walletId)
         {
             var wallet = GetWalletById(walletId);
+            var transactions = wallet.Transactions.OrderByDescending(t => t.TransactionDate);
 
-            var transactionDto = _mapper.Map<IEnumerable<TransactionDto>>(wallet.Transactions);
+            var physicalCurrencyCategoryId = _dbContext.AssetCategories.FirstOrDefault(c => c.Name == AssetCategoryEnum.PhysicalCurrencies.ToString()).Id;
+            var currencyAssets = _dbContext.Assets.Where(a => a.CategoryId == physicalCurrencyCategoryId && a.Currency == wallet.User.Currency).ToList();
 
-            return transactionDto;            
+            foreach (var item in transactions)
+            {
+                var transactionDto = _mapper.Map<TransactionDto>(item);
+
+                if (item.Asset.Currency != wallet.User.Currency)
+                {
+                    var currencyAsset = currencyAssets.FirstOrDefault(asset => asset.Ticker == $"{item.Asset.Currency}/{wallet.User.Currency}");
+
+                    transactionDto.InitialValue *= GetPriceByClosestDate(item.TransactionDate, currencyAsset, currencyAsset.Currency);
+                }
+
+                transactionDto.Price = transactionDto.InitialValue / transactionDto.Quantity;
+                transactionDto.Currency = wallet.User.Currency.ToString();
+
+                yield return transactionDto;
+            }
+        }
+
+        public IEnumerable<TransactionDto> GetTransactionsByAsset(int walletId, int assetId)
+        {
+            var wallet = GetWalletById(walletId);
+
+            if(!_dbContext.Assets.Any(a=>a.Id == assetId))
+            {
+                throw new NotFoundException("Asset not found");
+            }
+
+            var transactions = wallet.Transactions.Where(t => t.AssetId == assetId).OrderByDescending(t => t.TransactionDate);
+
+            var physicalCurrencyCategoryId = _dbContext.AssetCategories.FirstOrDefault(c => c.Name == AssetCategoryEnum.PhysicalCurrencies.ToString()).Id;
+            var currencyAssets = _dbContext.Assets.Where(a => a.CategoryId == physicalCurrencyCategoryId && a.Currency == wallet.User.Currency).ToList();
+
+            foreach (var item in transactions)
+            {
+                var transactionDto = _mapper.Map<TransactionDto>(item);
+
+                if (item.Asset.Currency != wallet.User.Currency)
+                {
+                    var currencyAsset = currencyAssets.FirstOrDefault(asset => asset.Ticker == $"{item.Asset.Currency}/{wallet.User.Currency}");
+
+                    transactionDto.InitialValue *= GetPriceByClosestDate(item.TransactionDate, currencyAsset, currencyAsset.Currency);
+                }
+
+                transactionDto.Price = transactionDto.InitialValue / transactionDto.Quantity;
+                transactionDto.Currency = wallet.User.Currency.ToString();
+
+                yield return transactionDto;
+            }
         }
 
         private Wallet GetWalletById(int walletId)
@@ -110,6 +167,37 @@ namespace InvestmentPortfolioManager.Services
             }
 
             return wallet;
+        }
+
+        private decimal GetPriceByClosestDate(DateTime date, Asset asset, CurrencyEnum currency)
+        {
+            decimal currencyPrice = 1;
+
+            var assetPrices = _dbContext.Prices.Where(p => p.AssetId == asset.Id).OrderBy(p => p.Date).ToList();
+            assetPrices.Add(new Price { AssetId = asset.Id, Date = asset.UpdatedDate, Value = asset.CurrentPrice });
+
+            if (asset.Currency != currency)
+            {
+                var currencyAsset = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
+                var currencyAssetPrices = _dbContext.Prices.Where(p => p.AssetId == currencyAsset.Id).OrderBy(p => p.Date).ToList();
+                currencyAssetPrices.Add(new Price { Date = currencyAsset.UpdatedDate, AssetId = currencyAsset.Id, Value = currencyAsset.CurrentPrice });
+
+                var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
+                        ? currencyAssetPrices.Last()
+                        : date <= currencyAssetPrices.First().Date
+                            ? currencyAssetPrices.First()
+                            : currencyAssetPrices.First(p => p.Date >= date);
+
+                currencyPrice = closestCurrencyAssetPrice.Value;
+            }
+
+            var closestAssetPrice = date >= assetPrices.Last().Date
+                ? assetPrices.Last()
+                : date <= assetPrices.First().Date
+                    ? assetPrices.First()
+                    : assetPrices.First(p => p.Date >= date);
+
+            return closestAssetPrice.Value * currencyPrice;
         }
     }
 }

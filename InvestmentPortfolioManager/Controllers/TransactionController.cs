@@ -41,5 +41,13 @@ namespace InvestmentPortfolioManager.Controllers
 
             return transactions;
         }
+
+        [HttpGet("{assetId}")]
+        public ActionResult<List<TransactionDto>> GetTransactionsByAsset([FromRoute] int walletId, [FromRoute] int assetId)
+        {
+            var transactions = _transactionService.GetTransactionsByAsset(walletId, assetId).ToList();
+
+            return transactions;
+        }
     }
 }

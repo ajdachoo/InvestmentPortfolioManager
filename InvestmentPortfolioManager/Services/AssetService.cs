@@ -122,31 +122,21 @@ namespace InvestmentPortfolioManager.Services
             decimal currencyPrice = 1;
 
             var assetPrices = _dbContext.Prices.Where(p => p.AssetId == asset.Id).OrderBy(p => p.Date).ToList();
+            assetPrices.Add(new Price { AssetId = asset.Id, Date = asset.UpdatedDate, Value = asset.CurrentPrice });
 
             if (asset.Currency != currency)
             {
                 var currencyAsset = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
                 var currencyAssetPrices = _dbContext.Prices.Where(p => p.AssetId == currencyAsset.Id).OrderBy(p => p.Date).ToList();
+                currencyAssetPrices.Add(new Price { Date = currencyAsset.UpdatedDate, AssetId = currencyAsset.Id, Value = currencyAsset.CurrentPrice });
 
-                if (currencyAssetPrices.Count > 0)
-                {
-                    var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
+                var closestCurrencyAssetPrice = date >= currencyAssetPrices.Last().Date
                         ? currencyAssetPrices.Last()
                         : date <= currencyAssetPrices.First().Date
                             ? currencyAssetPrices.First()
                             : currencyAssetPrices.First(p => p.Date >= date);
 
-                    currencyPrice = closestCurrencyAssetPrice.Value;
-                }
-                else
-                {
-                    currencyPrice = currencyAsset.CurrentPrice;
-                }
-            }
-
-            if (assetPrices.Count == 0)
-            {
-                return asset.CurrentPrice * currencyPrice;
+                currencyPrice = closestCurrencyAssetPrice.Value;
             }
 
             var closestAssetPrice = date >= assetPrices.Last().Date
