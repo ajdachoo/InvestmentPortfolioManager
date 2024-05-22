@@ -13,6 +13,7 @@ namespace InvestmentPortfolioManager.Services
         public IEnumerable<AssetDto> GetAll(string currency = "USD");
         public IEnumerable<AssetDto> GetAssetsByCategory(string asssetCategory, string currency = "USD");
         public AssetDto GetById(int id, string currency = "USD");
+        public IEnumerable<AssetName> GetAllNames(string currency = "USD");
     }
 
     public class AssetService : IAssetService
@@ -33,6 +34,34 @@ namespace InvestmentPortfolioManager.Services
             var assetDtos = GetAssetDtos(assets, currency);
 
             return assetDtos;
+        }
+
+        public IEnumerable<AssetName> GetAllNames(string currency = "USD")
+        {
+            currency = currency.ToUpper();
+
+            if (!Enum.TryParse<CurrencyEnum>(currency, true, out CurrencyEnum currencyEnum))
+            {
+                throw new BadRequestException("Currency not found.");
+            }
+
+            var physicalCurrencyCategoryId = _dbContext.AssetCategories.FirstOrDefault(c => c.Name == AssetCategoryEnum.PhysicalCurrencies.ToString()).Id;
+
+            var assets = _dbContext.Assets.ToList();
+
+            assets.RemoveAll(a => a.CategoryId == physicalCurrencyCategoryId && a.Currency != currencyEnum);
+
+            foreach (var asset in assets)
+            {
+                if(asset.CategoryId == physicalCurrencyCategoryId)
+                {
+                    asset.Name = asset.Name.Substring(0, 3);
+                }
+            }
+
+            var assetNames = _mapper.Map<List<AssetName>>(assets);
+
+            return assetNames;
         }
 
         public AssetDto GetById(int id, string currency = "USD")

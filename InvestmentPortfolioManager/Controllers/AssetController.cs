@@ -16,6 +16,14 @@ namespace InvestmentPortfolioManager.Controllers
             _assetService = assetService;
         }
 
+        [HttpGet("namelist")]
+        public IActionResult GetAssetsNamelist([FromRoute] string currency)
+        {
+            var assets = _assetService.GetAllNames(currency);
+
+            return Ok(assets);
+        }
+
         [HttpGet]
         public IActionResult GetAssets([FromRoute] string currency)
         {

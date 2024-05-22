@@ -59,15 +59,18 @@ namespace InvestmentPortfolioManager.Services
             transaction.WalletId = wallet.Id;
 
             var asset = _dbContext.Assets.FirstOrDefault(a => a.Id == transaction.AssetId);
-            var currency = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{wallet.User.Currency}/{asset.Currency}");
-            var currencyPrice = GetPriceByClosestDate(transaction.TransactionDate, currency, wallet.User.Currency);
 
-            transaction.InitialValue *= currencyPrice;
+            if(asset.Currency != wallet.User.Currency)
+            {
+                var currency = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{wallet.User.Currency}/{asset.Currency}");
+                var currencyPrice = GetPriceByClosestDate(transaction.TransactionDate, currency, wallet.User.Currency);
 
+                transaction.InitialValue *= currencyPrice;
+            }
+            
             wallet.UpdatedDate = DateTime.UtcNow;
 
             _dbContext.Transactions.Add(transaction);
-            _dbContext.Wallets.Update(wallet);
             _dbContext.SaveChanges();
 
             return transaction.Id;

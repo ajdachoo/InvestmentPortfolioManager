@@ -82,11 +82,17 @@ namespace InvestmentPortfolioManager.Services
         public WalletDto GetWallet(int walletId)
         {
             var wallet = GetWalletById(walletId);
+            var walletTransactions = _dbContext.Transactions
+                .Include(t => t.Asset)
+                .ThenInclude(a => a.Category)
+                .Where(t => t.WalletId == walletId).ToList();
+
+
             var walletDto = _mapper.Map<WalletDto>(wallet);
 
             walletDto.Currency = wallet.User.Currency.ToString();
 
-            if (wallet.Transactions.IsNullOrEmpty())
+            if (walletTransactions.IsNullOrEmpty())
             {
                 walletDto.AssetPositions = new List<AssetPosition>();
                 walletDto.AssetCategoryPositions = new List<AssetCategoryPosition>();
@@ -94,7 +100,7 @@ namespace InvestmentPortfolioManager.Services
                 return walletDto;
             }
 
-            var assetPositions = GetAssetPositions(wallet.Transactions, wallet.User.Currency);
+            var assetPositions = GetAssetPositions(walletTransactions, wallet.User.Currency);
             var assetCategoryPositions = GetAssetCategoryPositions(assetPositions);
 
             walletDto.AssetPositions = assetPositions;
@@ -158,9 +164,6 @@ namespace InvestmentPortfolioManager.Services
         {
             var wallet = _dbContext.Wallets
                 .Include(w => w.User)
-                .Include(w => w.Transactions)
-                .ThenInclude(t => t.Asset)
-                .ThenInclude(a => a.Category)
                 .FirstOrDefault(w => w.Id == walletId);
 
             if (wallet is null)
