@@ -200,30 +200,61 @@ namespace InvestmentPortfolioManager.Services
 
         private List<AssetPosition> GetAssetPositions(List<Transaction> transactions, CurrencyEnum currency)
         {
+            var physicalCurrencyCategoryId = _dbContext.AssetCategories.FirstOrDefault(c => c.Name == AssetCategoryEnum.PhysicalCurrencies.ToString()).Id;
+            var currencyAssets = _dbContext.Assets.Where(a => a.CategoryId == physicalCurrencyCategoryId && a.Currency == currency).ToList();
             var positions = new List<AssetPosition>();
             decimal walletValue = 0;
             var currentDate = DateTime.UtcNow;
 
             foreach (var transaction in transactions)
             {
-                var position = positions.FirstOrDefault(p => p.AssetId == transaction.AssetId);
+                decimal currencyAssetPrice = 1;
 
+                if(currency != transaction.Asset.Currency)
+                {
+                    var currencyAsset = currencyAssets.FirstOrDefault(asset => asset.Ticker == $"{transaction.Asset.Currency}/{currency}");
+                    currencyAssetPrice = GetPriceByClosestDate(transaction.TransactionDate, currencyAsset, currencyAsset.Currency);
+                }
+
+                var position = positions.FirstOrDefault(p => p.AssetId == transaction.AssetId);
+                
                 if(position is null)
                 {
-                    positions.Add(new AssetPosition { 
+                    var newPosition = new AssetPosition()
+                    {
                         AssetId = transaction.AssetId,
                         AssetName = transaction.Asset.Name,
                         AssetCategoryName = transaction.Asset.Category.Name,
                         AssetCategoryId = transaction.Asset.Category.Id,
                         Ticker = transaction.Asset.Ticker,
                         Quantity = transaction.Quantity,
-                        TotalCost = transaction.InitialValue,
-                    });
+                    };
+
+                    if(transaction.Type == TransactionTypeEnum.Sell)
+                    {
+                        newPosition.Quantity *= -1;
+                        newPosition.Proceeds = transaction.InitialValue * currencyAssetPrice;
+                    }
+                    else
+                    {              
+                        newPosition.TotalCost = transaction.InitialValue * currencyAssetPrice;
+                    }
+
+                    positions.Add(newPosition);
                 }
                 else
                 {
-                    position.Quantity += transaction.Quantity;
-                    position.TotalCost += transaction.InitialValue;
+                    if(transaction.Type == TransactionTypeEnum.Sell)
+                    {
+                        position.Quantity -= transaction.Quantity;
+                        position.Proceeds += transaction.InitialValue * currencyAssetPrice;
+
+                    }
+                    else
+                    {
+                        position.Quantity += transaction.Quantity;
+                        position.TotalCost += transaction.InitialValue * currencyAssetPrice;
+                    }
                 }
             }
 
@@ -239,7 +270,7 @@ namespace InvestmentPortfolioManager.Services
 
                 if(asset.Currency != currency)
                 {
-                    var currencyAsset = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
+                    var currencyAsset = currencyAssets.FirstOrDefault(a => a.Ticker == $"{asset.Currency}/{currency}");
 
                     if (currencyAsset is null)
                     {
@@ -251,9 +282,8 @@ namespace InvestmentPortfolioManager.Services
 
                 position.Price = asset.CurrentPrice * currencyAssetPrice;
                 position.TotalValue = position.Quantity * position.Price;
-                position.TotalCost *= currencyAssetPrice;
-                position.AvgCost = position.TotalCost / position.Quantity;
-                position.Profit = position.TotalValue - position.TotalCost;
+                position.Profit = position.TotalValue - position.TotalCost + position.Proceeds;
+                position.AvgCost = position.Quantity == 0 ? 0 : Math.Abs((position.TotalCost - position.Proceeds) / position.Quantity);
 
                 var priceLast24h = GetPriceByClosestDate(currentDate.AddHours(-24), asset, currency);
                 position.PercentageChange24h = (double)((position.Price - priceLast24h) / priceLast24h * 100);
@@ -298,7 +328,8 @@ namespace InvestmentPortfolioManager.Services
                         CategoryName = position.AssetCategoryName,
                         TotalValue = position.TotalValue,
                         TotalProfit = position.Profit,
-                        TotalCost = position.TotalCost
+                        TotalCost = position.TotalCost,
+                        Proceeds = position.Proceeds,
                     });
                 }
                 else
@@ -306,12 +337,13 @@ namespace InvestmentPortfolioManager.Services
                     categoryPosition.TotalValue += position.TotalValue;
                     categoryPosition.TotalProfit += position.Profit;
                     categoryPosition.TotalCost += position.TotalCost;
+                    categoryPosition.Proceeds += position.Proceeds;
                 }
             }
 
             foreach(var categoryPosition in categoryPositions)
             {
-                categoryPosition.PercentageInWallet = (double)(categoryPosition.TotalValue / walletValue) * 100;
+                categoryPosition.PercentageInWallet = walletValue == 0 ? 0 : (double)(categoryPosition.TotalValue / walletValue) * 100;
 
                 decimal sumPricesLast24h = 0, sumPricesLast7d = 0, sumPricesLast1m = 0, sumPricesLast1y = 0;
 
@@ -325,10 +357,10 @@ namespace InvestmentPortfolioManager.Services
                     sumPricesLast1y += position.TotalValue / ((decimal)position.PercentageChange1y / 100 + 1);
                 }
 
-                categoryPosition.PercentageChange24h = (double)((categoryPosition.TotalValue - sumPricesLast24h) / sumPricesLast24h * 100);
-                categoryPosition.PercentageChange7d = (double)((categoryPosition.TotalValue - sumPricesLast7d) / sumPricesLast7d * 100);
-                categoryPosition.PercentageChange1m = (double)((categoryPosition.TotalValue - sumPricesLast1m) / sumPricesLast1m * 100);
-                categoryPosition.PercentageChange1y = (double)((categoryPosition.TotalValue - sumPricesLast1y) / sumPricesLast1y * 100);
+                categoryPosition.PercentageChange24h = sumPricesLast24h == 0 ? 0 : (double)((categoryPosition.TotalValue - sumPricesLast24h) / sumPricesLast24h * 100);
+                categoryPosition.PercentageChange7d = sumPricesLast7d == 0 ? 0 : (double)((categoryPosition.TotalValue - sumPricesLast7d) / sumPricesLast7d * 100);
+                categoryPosition.PercentageChange1m = sumPricesLast1m == 0 ? 0 : (double)((categoryPosition.TotalValue - sumPricesLast1m) / sumPricesLast1m * 100);
+                categoryPosition.PercentageChange1y = sumPricesLast1y == 0 ? 0 : (double)((categoryPosition.TotalValue - sumPricesLast1y) / sumPricesLast1y * 100);
             }
 
             return categoryPositions;

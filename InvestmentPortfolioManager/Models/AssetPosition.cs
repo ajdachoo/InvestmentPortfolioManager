@@ -11,6 +11,7 @@
         public decimal Quantity { get; set; }
         public decimal TotalValue { get; set; }
         public decimal TotalCost { get; set; }
+        public decimal Proceeds { get; set; }
         public decimal AvgCost { get; set; }
         public decimal Profit { get; set; }
         public double PercentageInWallet { get; set; }
