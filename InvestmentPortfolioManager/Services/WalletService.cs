@@ -120,10 +120,10 @@ namespace InvestmentPortfolioManager.Services
                 sumPricesLast1y += assetPosition.TotalValue / ((decimal)assetPosition.PercentageChange1y / 100 + 1);
             }
 
-            walletDto.PercentageChange24h = (double)((walletDto.CurrentValue - sumPricesLast24h) / sumPricesLast24h * 100);
-            walletDto.PercentageChange7d = (double)((walletDto.CurrentValue - sumPricesLast7d) / sumPricesLast7d * 100);
-            walletDto.PercentageChange1m = (double)((walletDto.CurrentValue - sumPricesLast1m) / sumPricesLast1m * 100);
-            walletDto.PercentageChange1y = (double)((walletDto.CurrentValue - sumPricesLast1y) / sumPricesLast1y * 100);
+            walletDto.PercentageChange24h = sumPricesLast24h == 0 ? 0 : (double)((walletDto.CurrentValue - sumPricesLast24h) / sumPricesLast24h * 100);
+            walletDto.PercentageChange7d = sumPricesLast7d == 0 ? 0 : (double)((walletDto.CurrentValue - sumPricesLast7d) / sumPricesLast7d * 100);
+            walletDto.PercentageChange1m = sumPricesLast1m == 0 ? 0 : (double)((walletDto.CurrentValue - sumPricesLast1m) / sumPricesLast1m * 100);
+            walletDto.PercentageChange1y = sumPricesLast1y == 0 ? 0 : (double)((walletDto.CurrentValue - sumPricesLast1y) / sumPricesLast1y * 100);
 
             return walletDto;
         }
@@ -302,7 +302,7 @@ namespace InvestmentPortfolioManager.Services
 
             foreach(var position in positions)
             {
-                position.PercentageInWallet = (double)(position.TotalValue / walletValue) * 100;
+                position.PercentageInWallet = walletValue == 0 ? 0 : (double)(position.TotalValue / walletValue) * 100;
                 position.UpdatedDate = currentDate;
             }
 

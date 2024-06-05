@@ -63,7 +63,7 @@ namespace InvestmentPortfolioManager.Services
             if(asset.Currency != wallet.User.Currency)
             {
                 var currency = _dbContext.Assets.FirstOrDefault(a => a.Ticker == $"{wallet.User.Currency}/{asset.Currency}");
-                var currencyPrice = GetPriceByClosestDate(transaction.TransactionDate, currency, wallet.User.Currency);
+                var currencyPrice = GetPriceByClosestDate(transaction.TransactionDate, currency, currency.Currency);
 
                 transaction.InitialValue *= currencyPrice;
             }
