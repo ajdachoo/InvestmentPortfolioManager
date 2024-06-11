@@ -1,12 +1,13 @@
 ﻿using InvestmentPortfolioManager.Entities;
 using InvestmentPortfolioManager.Enums;
+using InvestmentPortfolioManager.Models;
 using InvestmentPortfolioManager.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvestmentPortfolioManager.Controllers
 {
     [ApiController]
-    [Route("api/asset/{currency}")]
+    [Route("api/asset")]
     public class AssetController : ControllerBase
     {
         private readonly IAssetService _assetService;
@@ -16,8 +17,8 @@ namespace InvestmentPortfolioManager.Controllers
             _assetService = assetService;
         }
 
-        [HttpGet("namelist")]
-        public IActionResult GetAssetsNamelist([FromRoute] string currency)
+        [HttpGet("{currency}/namelist")]
+        public ActionResult<IEnumerable<AssetName>> GetAssetsNamelist([FromRoute] string currency)
         {
             var assets = _assetService.GetAllNames(currency);
 
@@ -25,15 +26,15 @@ namespace InvestmentPortfolioManager.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAssets([FromRoute] string currency)
+        public ActionResult<PagedResult<AssetDto>> GetAssets([FromQuery]AssetQuery query)
         {
-            var assets = _assetService.GetAll(currency).ToList();
+            var assets = _assetService.GetAll(query);
 
             return Ok(assets);
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetAssetById([FromRoute]string currency, [FromRoute]int id)
+        [HttpGet("{currency}/{id}")]
+        public ActionResult<AssetDto> GetAssetById([FromRoute]string currency, [FromRoute]int id)
         {
             var asset = _assetService.GetById(id, currency);
 

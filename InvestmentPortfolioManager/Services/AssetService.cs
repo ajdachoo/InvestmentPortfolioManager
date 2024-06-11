@@ -10,7 +10,7 @@ namespace InvestmentPortfolioManager.Services
 {
     public interface IAssetService
     {
-        public IEnumerable<AssetDto> GetAll(string currency = "USD");
+        public PagedResult<AssetDto> GetAll(AssetQuery query);
         public IEnumerable<AssetDto> GetAssetsByCategory(string asssetCategory, string currency = "USD");
         public AssetDto GetById(int id, string currency = "USD");
         public IEnumerable<AssetName> GetAllNames(string currency = "USD");
@@ -27,13 +27,28 @@ namespace InvestmentPortfolioManager.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<AssetDto> GetAll(string currency = "USD")
+        public PagedResult<AssetDto> GetAll(AssetQuery query)
         {
-            var assets = _dbContext.Assets.Include(a => a.Category).ToList();
+            var baseQuery = _dbContext
+                .Assets
+                .Include(a => a.Category)
+                .Where(a => query.SearchPhrase == null
+                || (a.Name.ToLower().Contains(query.SearchPhrase.ToLower())
+                || a.Ticker.ToLower().Contains(query.SearchPhrase.ToLower())
+                || a.Category.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
 
-            var assetDtos = GetAssetDtos(assets, currency);
+            var assets = baseQuery
+                .Skip(query.PageSize * (query.PageNumber - 1))
+                .Take(query.PageSize)
+                .ToList();
 
-            return assetDtos;
+            var assetDtos = GetAssetDtos(assets, query.Currency).ToList();
+
+            var totalItemsCount = baseQuery.Count();
+
+            var result = new PagedResult<AssetDto>(assetDtos, totalItemsCount, query.PageSize, query.PageNumber);
+
+            return result;
         }
 
         public IEnumerable<AssetName> GetAllNames(string currency = "USD")
